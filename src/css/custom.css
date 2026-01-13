@@ -1,0 +1,183 @@
+/**
+ * Hexis Documentation Theme
+ * Sky/Cyan color scheme to match usehexis.com
+ */
+
+/* Light mode */
+:root {
+  --ifm-color-primary: #0ea5e9;
+  --ifm-color-primary-dark: #0c94d1;
+  --ifm-color-primary-darker: #0b8cc6;
+  --ifm-color-primary-darkest: #0973a3;
+  --ifm-color-primary-light: #2ab4f0;
+  --ifm-color-primary-lighter: #3fbaf1;
+  --ifm-color-primary-lightest: #6dcbf5;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(14, 165, 233, 0.1);
+  --ifm-font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif;
+}
+
+/* Dark mode - primary theme */
+[data-theme='dark'] {
+  --ifm-color-primary: #38bdf8;
+  --ifm-color-primary-dark: #1eb3f7;
+  --ifm-color-primary-darker: #0eadf6;
+  --ifm-color-primary-darkest: #078dc9;
+  --ifm-color-primary-light: #52c7f9;
+  --ifm-color-primary-lighter: #62ccf9;
+  --ifm-color-primary-lightest: #8ddbfb;
+  --ifm-background-color: #09090b;
+  --ifm-background-surface-color: #18181b;
+  --ifm-navbar-background-color: #09090b;
+  --ifm-footer-background-color: #09090b;
+  --docusaurus-highlighted-code-line-bg: rgba(56, 189, 248, 0.15);
+}
+
+/* Navbar styling */
+.navbar {
+  border-bottom: 1px solid rgba(63, 63, 70, 0.5);
+}
+
+[data-theme='dark'] .navbar {
+  background-color: rgba(9, 9, 11, 0.95);
+  backdrop-filter: blur(12px);
+}
+
+.navbar__title {
+  font-weight: 600;
+}
+
+.navbar__logo {
+  border-radius: 8px;
+}
+
+/* Sidebar styling */
+[data-theme='dark'] .menu {
+  background-color: transparent;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: rgba(56, 189, 248, 0.1);
+}
+
+/* Code blocks */
+[data-theme='dark'] pre {
+  background-color: #18181b !important;
+  border: 1px solid rgba(63, 63, 70, 0.5);
+}
+
+/* Tables */
+[data-theme='dark'] table {
+  border-color: rgba(63, 63, 70, 0.5);
+}
+
+[data-theme='dark'] th {
+  background-color: #18181b;
+}
+
+[data-theme='dark'] tr:nth-child(2n) {
+  background-color: rgba(24, 24, 27, 0.5);
+}
+
+/* Admonitions/callouts */
+[data-theme='dark'] .alert {
+  background-color: rgba(24, 24, 27, 0.8);
+  border-color: rgba(63, 63, 70, 0.5);
+}
+
+/* Cards and containers */
+[data-theme='dark'] .card {
+  background-color: #18181b;
+  border: 1px solid rgba(63, 63, 70, 0.5);
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid rgba(63, 63, 70, 0.5);
+}
+
+[data-theme='dark'] .footer {
+  background-color: #09090b;
+}
+
+.footer__title {
+  color: #fff;
+}
+
+/* Links */
+[data-theme='dark'] a {
+  color: #38bdf8;
+}
+
+[data-theme='dark'] a:hover {
+  color: #7dd3fc;
+}
+
+/* Scrollbar */
+[data-theme='dark'] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: #18181b;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 4px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* Hero/landing customizations */
+.hero {
+  background: linear-gradient(135deg, #09090b 0%, #18181b 100%);
+}
+
+.hero__title {
+  background: linear-gradient(to right, #38bdf8, #22d3ee, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Badges for API status */
+.badge--lua {
+  background-color: #2563eb;
+  color: white;
+}
+
+.badge--blocking {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.badge--async {
+  background-color: #10b981;
+  color: white;
+}
+
+/* Custom namespace labels */
+.namespace-label {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 500;
+  background-color: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  margin-bottom: 1rem;
+}
+
+/* Method signatures */
+.method-signature {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background-color: rgba(24, 24, 27, 0.8);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #38bdf8;
+  margin: 1rem 0;
+}
