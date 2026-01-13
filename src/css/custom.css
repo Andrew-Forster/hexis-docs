@@ -625,3 +625,18 @@ a, button, .menu__link, .navbar__link {
   box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
   transform: translateY(-2px);
 }
+
+/* ===== MOBILE SIDEBAR FIX ===== */
+/* Ensure mobile sidebar appears above content */
+.navbar-sidebar {
+  z-index: 100 !important;
+}
+
+.navbar-sidebar__backdrop {
+  z-index: 99 !important;
+}
+
+/* Mobile menu toggle should be above everything */
+.navbar__toggle {
+  z-index: 101;
+}
