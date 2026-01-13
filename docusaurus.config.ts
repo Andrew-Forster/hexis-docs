@@ -3,7 +3,7 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Hexis Documentation',
+  title: 'Hexis Docs',
   tagline: 'Lua scripting API for intelligent Minecraft automation',
   favicon: 'img/favicon.ico',
 
