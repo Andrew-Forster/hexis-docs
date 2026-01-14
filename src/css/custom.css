@@ -68,6 +68,8 @@
   --ifm-line-height-base: 1.7;
   --ifm-font-weight-semibold: 600;
   --ifm-heading-font-weight: 700;
+  /* Navbar height - must be set here so mobile sidebar positions correctly */
+  --ifm-navbar-height: 4rem;
 }
 
 /* Global styles */
@@ -84,10 +86,38 @@ body {
 /* ===== NAVBAR ===== */
 .navbar {
   border-bottom: 1px solid rgba(63, 63, 70, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   padding: 0.5rem 0;
-  height: auto;
+  /* Don't use height: auto - it breaks mobile sidebar positioning */
+  /* The sidebar uses --ifm-navbar-height to position itself */
+}
+
+/* Only apply backdrop-filter on desktop - it breaks mobile sidebar stacking context */
+@media (min-width: 997px) {
+  .navbar {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
+
+/* On mobile, NO backdrop-filter - it breaks stacking context */
+@media (max-width: 996px) {
+  .navbar {
+    background-color: #09090b !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Mobile sidebar - solid background, no blur */
+  .navbar-sidebar {
+    background-color: #0f0f12 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* NUCLEAR: Force the entire navbar to be above everything when sidebar is open */
+  .navbar-sidebar--show {
+    z-index: 9999 !important;
+  }
 }
 
 .navbar__inner {
@@ -627,16 +657,25 @@ a, button, .menu__link, .navbar__link {
 }
 
 /* ===== MOBILE SIDEBAR FIX ===== */
-/* Ensure mobile sidebar appears above content */
+/* Ensure mobile sidebar and backdrop appear above all content */
 .navbar-sidebar {
-  z-index: 100 !important;
+  z-index: var(--ifm-z-index-overlay) !important;
 }
 
 .navbar-sidebar__backdrop {
-  z-index: 99 !important;
+  z-index: calc(var(--ifm-z-index-overlay) - 1) !important;
 }
 
-/* Mobile menu toggle should be above everything */
-.navbar__toggle {
-  z-index: 101;
+/* Ensure main content doesn't create stacking context above sidebar */
+.main-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+/* Doc page content should not overlap mobile sidebar */
+.theme-doc-sidebar-container,
+.docMainContainer,
+article {
+  position: relative;
+  z-index: 1;
 }
