@@ -8,7 +8,19 @@ description: Block breaking with smooth aiming
 
 Namespace: `hexis.mining`
 
-Block breaking with smooth aiming.
+Block breaking with smooth aiming and smart target selection.
+
+:::danger Unstable API
+
+The Mining API is currently **unstable and not ready for production use**. Target selection, pathfinding, and aim point calculation are actively being developed and may behave unexpectedly. Known issues include:
+
+- Occasionally targeting blocks that require long paths when closer blocks are available
+- Freezing during target recalculation
+- Mining wrong blocks due to hitbox overlap
+
+Use at your own risk. This warning will be removed when the API stabilizes.
+
+:::
 
 ---
 
@@ -151,15 +163,89 @@ hexis.mining.stop_mining_async()
 
 ### `hexis.mining.aim_tick()`
 
-Performs one frame of smooth aiming toward the async mining target.
+Performs one frame of smooth aiming toward the async mining target. Returns `true` if aimed and hitting the target block.
 
 ### `hexis.mining.stop_mining_async()`
 
-Stops non-blocking mining. Releases attack button.
+Stops non-blocking mining. Releases attack button and camera control.
 
 ### `hexis.mining.is_mining_async()`
 
 Returns `true` if async mining is currently active.
+
+---
+
+## Smart Target Selection
+
+:::info Recommended API
+
+`select_target_smart` is the recommended function for ore/block mining scripts. It provides human-like target selection with cluster awareness.
+
+:::
+
+### `hexis.mining.select_target_smart(options)`
+
+Smart mining target selection with cluster awareness and adjacency scoring. Prioritizes blocks adjacent to the last mined position, making mining behavior more human-like.
+
+```lua
+local result = hexis.mining.select_target_smart({
+    candidates = ore_positions,    -- Array of {x, y, z} positions
+    last_mined = last_mined_pos,   -- Position of last mined block (for adjacency)
+    cluster_radius = 4,            -- Blocks within this radius = same cluster
+    prefer_coverage = true,        -- Prefer positions reaching multiple targets
+    max_nodes = 30000,             -- Optional: max A* search nodes
+    max_time_ms = 1000             -- Optional: max search time in ms
+})
+
+if result.success then
+    -- result.target = {x, y, z}               - The block to mine
+    -- result.standing_pos = {x, y, z}         - Where to stand (nil if immediate)
+    -- result.path = {{x,y,z}, ...}            - Navigation path (nil if immediate)
+    -- result.aim_point = {x, y, z}            - Precise aim coordinates
+    -- result.needs_jump = true/false          - Whether mining requires jumping
+    -- result.path_cost = number               - Navigation path cost
+    -- result.score = number                   - Selection score (higher = better)
+    -- result.immediately_reachable = boolean  - True if no navigation needed
+    -- result.compute_time_ms = number         - How long selection took
+
+    if result.immediately_reachable then
+        hexis.log.info("Can mine immediately!")
+    else
+        hexis.log.info("Need to walk to standing position first")
+    end
+else
+    hexis.log.warn("No reachable target: " .. result.failure_reason)
+end
+```
+
+**Scoring Formula:**
+- Adjacent to last mined (distance 1): +500 points
+- Very close (distance 2): +300 points
+- Same cluster (distance 3-4): +150 points
+- Nearby (distance 5-6): +50 points
+- Current cluster membership: +200 points
+- Reach ease: 0-100 points based on angle/distance
+- No jump required: +50 points
+- Multi-target coverage: +30 points per additional reachable target
+
+### `hexis.mining.find_immediate_target(options)`
+
+Fast check for immediately reachable targets from current position. Skips pathfinding entirely.
+
+```lua
+local result = hexis.mining.find_immediate_target({
+    candidates = ore_positions,
+    last_mined = last_mined_pos  -- Optional: for adjacency scoring
+})
+
+if result then
+    -- result.target = {x, y, z}
+    -- result.needs_jump = true/false
+    -- result.aim_point = {x, y, z}
+    -- result.score = number
+    -- result.immediately_reachable = true (always)
+end
+```
 
 ---
 
@@ -191,15 +277,89 @@ end
 
 ---
 
+## Vantage Points
+
+Vantage points are positions from which a block can be mined. These functions help find optimal mining positions.
+
+### `hexis.mining.check_current_reach(pos)`
+
+Quick check if you can reach a block from your current position.
+
+```lua
+local vp = hexis.mining.check_current_reach({x = 100, y = 65, z = 200})
+
+if vp then
+    -- vp.reachable = true
+    -- vp.needs_jump = true/false
+    -- vp.score = number (0-1, higher = better)
+    -- vp.distance = number
+    -- vp.aim_point = {x, y, z}
+    -- vp.obstacle = {x, y, z} or nil
+end
+```
+
+### `hexis.mining.find_vantage_points(options)`
+
+Find positions from which a block can be mined.
+
+```lua
+local vantage_points = hexis.mining.find_vantage_points({
+    x = 100, y = 65, z = 200,
+    search_radius = 4  -- Optional: default 4
+})
+
+for _, vp in ipairs(vantage_points) do
+    -- vp.x, vp.y, vp.z = standing position
+    -- vp.needs_jump = true/false
+    -- vp.score = quality score
+    -- vp.distance = distance to target
+    -- vp.aim_point = {x, y, z}
+end
+```
+
+### `hexis.mining.find_ground_vantage_points(options)`
+
+Find ground-level positions for mining overhead blocks. Only returns positions at or below player Y that can jump-reach the target.
+
+```lua
+local ground_vps = hexis.mining.find_ground_vantage_points({
+    x = 100, y = 70, z = 200,  -- Block above player
+    search_radius = 5
+})
+```
+
+### `hexis.mining.is_block_reachable(pos)`
+
+Quick check if a block can be reached from anywhere nearby.
+
+```lua
+if hexis.mining.is_block_reachable({x = 100, y = 65, z = 200}) then
+    hexis.log.info("Block is reachable!")
+end
+```
+
+---
+
 ## Smart Aim Points
 
 ### `hexis.mining.get_smart_aim_point(pos)`
 
-Get the best visible point on a block for mining.
+Get the best visible point on a block for mining. May return off-center coordinates when the center is obstructed.
 
 ```lua
 local aim = hexis.mining.get_smart_aim_point({x = 100, y = 65, z = 200})
 -- aim may be off-center: {x = 100.9, y = 65.5, z = 200.5}
+```
+
+### `hexis.mining.get_all_aim_points(pos)`
+
+Get all visible aim points on a block for retry logic.
+
+```lua
+local points = hexis.mining.get_all_aim_points({x = 100, y = 65, z = 200})
+for _, point in ipairs(points) do
+    hexis.log.debug("Aim option: " .. point.x .. ", " .. point.y .. ", " .. point.z)
+end
 ```
 
 ### `hexis.mining.start_mining_smart(pos)`
@@ -211,4 +371,145 @@ hexis.mining.start_mining_smart({
     x = 100, y = 65, z = 200,
     aim_speed = 2.5
 })
+```
+
+### `hexis.mining.recalculate_aim(pos)`
+
+Re-run aim point calculation from current eye position. Useful when player has moved.
+
+```lua
+local result = hexis.mining.recalculate_aim({x = 100, y = 65, z = 200})
+if result.success then
+    -- result.aim_point = {x, y, z}
+    -- result.distance = number
+end
+```
+
+---
+
+## Crosshair Validation
+
+### `hexis.mining.get_crosshair_target()`
+
+Get the block the crosshair is currently targeting.
+
+```lua
+local target = hexis.mining.get_crosshair_target()
+if target then
+    -- target.x, target.y, target.z
+    -- target.side = "up", "down", "north", "south", "east", "west"
+end
+```
+
+### `hexis.mining.is_targeting_block(x, y, z)`
+
+Check if crosshair is targeting a specific block.
+
+```lua
+if hexis.mining.is_targeting_block(100, 65, 200) then
+    hexis.log.info("Aiming at the right block!")
+end
+```
+
+---
+
+## Background Precomputation
+
+Compute the next mining target in the background while mining the current block.
+
+### `hexis.mining.precompute_next_target(options)`
+
+Starts background computation of the next target.
+
+```lua
+hexis.mining.precompute_next_target({
+    current = {x = 100, y = 65, z = 200},  -- Block currently being mined
+    candidates = remaining_ores            -- Array of {x, y, z} positions
+})
+```
+
+### `hexis.mining.get_precomputed_target()`
+
+Get and clear the precomputed target. Returns `nil` if not ready.
+
+```lua
+local precomputed = hexis.mining.get_precomputed_target()
+if precomputed then
+    -- Same format as select_target_smart result
+end
+```
+
+### `hexis.mining.peek_precomputed_target()`
+
+Peek at precomputed target without clearing it. Useful for visual highlighting.
+
+### `hexis.mining.is_precomputing()`
+
+Returns `true` if background precomputation is running.
+
+### `hexis.mining.cancel_precomputation()`
+
+Cancel any ongoing precomputation.
+
+---
+
+## Example: Ore Mining Script
+
+```lua
+local last_mined_pos = nil
+local blocks_mined = 0
+
+function hexis.main()
+    while hexis.running() do
+        -- Scan for ores
+        local ores = hexis.world.scan_blocks({
+            names = {"diamond_ore", "deepslate_diamond_ore"},
+            radius = 20
+        })
+
+        if #ores == 0 then
+            hexis.log.info("No ores found, waiting...")
+            hexis.sleep(1000)
+        else
+            -- Use smart target selection
+            local result = hexis.mining.select_target_smart({
+                candidates = ores,
+                last_mined = last_mined_pos,
+                cluster_radius = 4
+            })
+
+            if result.success then
+                local target = result.target
+
+                -- Navigate if needed
+                if not result.immediately_reachable and result.path then
+                    hexis.navigation.walk_path(result.path)
+                end
+
+                -- Mine the block
+                hexis.mining.start_mining_async({
+                    x = result.aim_point.x,
+                    y = result.aim_point.y,
+                    z = result.aim_point.z,
+                    aim_speed = 2.5
+                })
+
+                -- Wait for block to break
+                while not hexis.world.is_block_air(target.x, target.y, target.z) do
+                    hexis.mining.aim_tick()
+                    hexis.sleep(50)
+                end
+
+                hexis.mining.stop_mining_async()
+
+                -- Track progress
+                last_mined_pos = target
+                blocks_mined = blocks_mined + 1
+                hexis.hud.set_var("mined", blocks_mined)
+            end
+        end
+
+        hexis.sleep(100)
+    end
+end
 ```
