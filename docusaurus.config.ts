@@ -70,10 +70,14 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
+          to: '/',
+          label: 'Intro',
           position: 'left',
-          label: 'API Reference',
+        },
+        {
+          to: '/api/core',
+          label: 'API',
+          position: 'left',
         },
         {
           to: '/guides/best-practices',
