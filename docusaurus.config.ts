@@ -25,6 +25,20 @@ const config: Config = {
     locales: ['en'],
   },
 
+  themes: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+        docsRouteBasePath: '/',
+        indexBlog: false,
+      },
+    ],
+  ],
+
   presets: [
     [
       'classic',
@@ -78,51 +92,8 @@ const config: Config = {
         },
       ],
     },
-    footer: {
-      style: 'dark',
-      links: [
-        {
-          title: 'Documentation',
-          items: [
-            {
-              label: 'Getting Started',
-              to: '/',
-            },
-            {
-              label: 'API Reference',
-              to: '/api/core',
-            },
-            {
-              label: 'Guides',
-              to: '/guides/best-practices',
-            },
-          ],
-        },
-        {
-          title: 'Community',
-          items: [
-            {
-              label: 'Discord',
-              href: 'https://discord.gg/TNVyFgBqYz',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Main Website',
-              href: 'https://usehexis.com',
-            },
-            {
-              label: 'Quick Reference',
-              to: '/quick-reference',
-            },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} A5 Software LLC. Not affiliated with Mojang AB or Hypixel Inc.`,
-    },
+    // Footer is disabled - using inline footer in doc pages instead
+    // This keeps sidebars from being cut off by the footer
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
