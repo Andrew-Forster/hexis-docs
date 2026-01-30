@@ -123,6 +123,8 @@ body {
 .navbar__inner {
   max-width: 1400px;
   margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .navbar__title {
@@ -328,6 +330,23 @@ article {
   border-radius: 12px;
   width: 100%;
   background-color: #0f0f12;
+  table-layout: fixed;
+}
+
+/* DESKTOP: Column widths for parameter tables */
+[data-theme='dark'] th:nth-child(1),
+[data-theme='dark'] td:nth-child(1) {
+  width: 140px;
+}
+
+[data-theme='dark'] th:nth-child(2),
+[data-theme='dark'] td:nth-child(2) {
+  width: 90px;
+}
+
+[data-theme='dark'] th:nth-child(3),
+[data-theme='dark'] td:nth-child(3) {
+  width: 90px;
 }
 
 /* Table header */
@@ -386,33 +405,36 @@ article {
 /* DESKTOP: Last column fills remaining space */
 [data-theme='dark'] th:last-child,
 [data-theme='dark'] td:last-child {
-  width: 100%;
+  width: auto;
+  min-width: 200px;
 }
 
 /* MOBILE: Horizontal scroll for tables */
 @media (max-width: 996px) {
-  /* Prevent page from scrolling horizontally */
-  html, body {
-    overflow-x: hidden !important;
-  }
-
-  /* Wrapper is the scroll container */
+  /* Wrapper scrolls within article container - no breakout */
   .table-scroll-wrapper {
     display: block;
-    overflow-x: scroll !important;
+    width: 100%;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    max-width: 100%;
   }
 
-  /* Table needs fixed min-width to be scrollable */
+  /* Table needs min-width to trigger horizontal scroll */
   [data-theme='dark'] table {
     width: max-content;
-    min-width: 600px;
+    min-width: 500px;
+    table-layout: auto;
   }
 
-  /* Don't expand last column on mobile */
+  /* Reset column widths on mobile */
   [data-theme='dark'] th:last-child,
-  [data-theme='dark'] td:last-child {
+  [data-theme='dark'] td:last-child,
+  [data-theme='dark'] th:nth-child(1),
+  [data-theme='dark'] td:nth-child(1),
+  [data-theme='dark'] th:nth-child(2),
+  [data-theme='dark'] td:nth-child(2),
+  [data-theme='dark'] th:nth-child(3),
+  [data-theme='dark'] td:nth-child(3) {
     width: auto;
   }
 }
@@ -592,6 +614,29 @@ article {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23a1a1aa' d='M6.02945,10.20327a4.17382,4.17382,0,1,1,4.17382-4.17382A4.15609,4.15609,0,0,1,6.02945,10.20327Zm9.69195,4.2199L10.8989,9.59979A5.88021,5.88021,0,0,0,12.058,6.02856,6.00467,6.00467,0,1,0,9.59979,10.8989l4.82338,4.82338a.89729.89729,0,0,0,1.29912,0,.89749.89749,0,0,0,0-1.29911Z' /%3E%3C/svg%3E") !important;
 }
 
+/* Local search plugin mobile button - even padding */
+@media (max-width: 996px) {
+  .searchBarContainer,
+  [data-theme='dark'] .searchBarContainer {
+    margin: 0 !important;
+  }
+
+  .navbarSearchContainer {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* The search toggle button on mobile */
+  .searchBarContainer button,
+  [data-theme='dark'] .searchBarContainer button {
+    padding: 8px 10px !important;
+    margin: 0 !important;
+    background-color: #18181b;
+    border: 1px solid rgba(63, 63, 70, 0.4);
+    border-radius: 10px;
+  }
+}
+
 /* Search dropdown styling */
 [data-theme='dark'] .search-result-match {
   background-color: rgba(56, 189, 248, 0.2);
@@ -604,11 +649,30 @@ article {
   border: 1px solid rgba(63, 63, 70, 0.4);
   border-radius: 10px;
   color: #71717a;
+  padding: 0 12px;
 }
 
 [data-theme='dark'] .DocSearch-Button:hover {
   background-color: #27272a;
   border-color: rgba(63, 63, 70, 0.6);
+}
+
+/* DocSearch button on mobile - even padding for icon-only display */
+@media (max-width: 996px) {
+  [data-theme='dark'] .DocSearch-Button {
+    padding: 0 10px;
+    margin: 0;
+  }
+
+  .DocSearch-Button-Keys,
+  .DocSearch-Button-Placeholder {
+    display: none;
+  }
+
+  .DocSearch-Search-Icon {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 /* Search results dropdown */
@@ -802,8 +866,34 @@ blockquote p {
 
 /* ===== MOBILE RESPONSIVE ===== */
 @media (max-width: 996px) {
+  /* Fix navbar horizontal padding - consistent left and right */
+  .navbar {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .navbar__inner {
+    padding: 0;
+  }
+
   .navbar__items--right {
     display: flex;
+    gap: 0.5rem;
+  }
+
+  /* Search button - even padding when collapsed to icon only */
+  .navbar__search,
+  [data-theme='dark'] .navbar__search {
+    margin-right: 0;
+  }
+
+  .navbar__search-input,
+  [data-theme='dark'] .navbar__search-input,
+  .DocSearch-Button {
+    width: auto;
+    min-width: 40px;
+    padding: 0.5rem;
+    padding-left: 2.25rem;
   }
 
   .markdown h1 {
