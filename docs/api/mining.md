@@ -10,15 +10,9 @@ Namespace: `hexis.mining`
 
 Block breaking with smooth aiming and smart target selection.
 
-:::danger Unstable API
+:::info API Status
 
-The Mining API is currently **unstable and not ready for production use**. Target selection, pathfinding, and aim point calculation are actively being developed and may behave unexpectedly. Known issues include:
-
-- Occasionally targeting blocks that require long paths when closer blocks are available
-- Freezing during target recalculation
-- Mining wrong blocks due to hitbox overlap
-
-Use at your own risk. This warning will be removed when the API stabilizes.
+The Mining API is actively evolving. The `mine_block()` and `mine_nearest()` functions are the recommended high-level entry points. Lower-level primitives (`start_mining_async`, `aim_tick`, etc.) remain available for custom control flows.
 
 :::
 
@@ -66,6 +60,149 @@ Stops current blocking mining operation.
 
 ```lua
 hexis.mining.stop()
+```
+
+---
+
+## Single-Block Mining
+
+### `hexis.mining.mine_block(options)`
+
+The recommended high-level function for mining a single block. Handles the full pipeline: find vantage point, navigate there, aim, and mine. Supports concurrent navigation+mining for overhead blocks.
+
+**Blocking:** Yes (returns when block is mined or fails)
+
+```lua
+local result = hexis.mining.mine_block({
+    x = 100, y = 70, z = 200,
+    aim_speed = 2.5,          -- Aim speed multiplier (default 2.5, max 3.0)
+    timeout = 3.0,            -- Per-block timeout in seconds (default 8.0)
+    allow_jump = true,        -- Allow jump-mining for overhead blocks (default false)
+    navigate = true,          -- Navigate to vantage point if needed (default true)
+    concurrent = true,        -- Mine while walking (default false, see below)
+    search_radius = 5,        -- Vantage point search radius (default 5)
+    max_nav_distance = 20.0   -- Max direct distance to vantage point (default 20.0)
+})
+
+if result.success then
+    hexis.log.info("Block mined!")
+else
+    hexis.log.warn("Failed: " .. result.reason)
+    -- result.reason: "air", "unreachable", "timeout", "nav_failed", "stopped"
+end
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `x`, `y`, `z` | int | required | Block position |
+| `aim_speed` | float | 2.5 | Camera aim speed (capped at 3.0) |
+| `timeout` | float | 8.0 | Seconds before giving up on mining |
+| `allow_jump` | bool | false | Jump while mining overhead blocks (requires Jump Boost) |
+| `navigate` | bool | true | Auto-navigate to a vantage point |
+| `concurrent` | bool | false | Lock camera to block, walk via WASD-only pathfinding |
+| `search_radius` | int | 5 | How far to search for vantage points |
+| `max_nav_distance` | float | 20.0 | Skip navigation if vantage is farther than this |
+
+**Concurrent Mode:**
+
+When `concurrent = true`, the camera locks to the mining target at a higher priority than navigation. The pathfinder automatically enters WASD-only mode (no camera rotation) and walks to the vantage point while the player is already mining. This is ideal for overhead blocks where you can hit the block while walking underneath it.
+
+```lua
+-- Typical usage for trees with overhead blocks
+local result = hexis.mining.mine_block({
+    x = block.x, y = block.y, z = block.z,
+    aim_speed = 2.5,
+    timeout = 3.0,
+    allow_jump = true,
+    navigate = true,
+    concurrent = true  -- Mine overhead blocks while walking to them
+})
+```
+
+**Return Values:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | bool | Whether the block was mined |
+| `reason` | string | `"success"`, `"air"`, `"unreachable"`, `"timeout"`, `"nav_failed"`, `"stopped"` |
+
+---
+
+## Multi-Target Navigation + Mining
+
+### `hexis.mining.mine_nearest(options)`
+
+Finds the nearest reachable block from a list of targets using **Multi-Target A*** and optionally navigates to it. Combines pathfinding and navigation into one call.
+
+**Blocking:** Configurable (blocking by default, async with `async = true`)
+
+```lua
+local result = hexis.mining.mine_nearest({
+    targets = tree_positions,    -- Array of {x, y, z} positions
+    max_nodes = 50000,           -- Max A* search nodes (default 50000)
+    max_time_ms = 2000,          -- Max search time in ms (default 2000)
+    goal_tolerance = 2.5,        -- How close to get (default 2.5)
+    distance = 1.0,              -- Navigation arrival distance (default 1.0)
+    allow_jump_mine = false,     -- Include jump-mine vantage points (default false)
+    async = false                -- Return immediately after starting nav (default false)
+})
+
+if result.success then
+    local target = result.target
+    hexis.log.info("Found block at " .. target.x .. ", " .. target.y .. ", " .. target.z)
+    -- Mine it with mine_block
+    hexis.mining.mine_block({x = target.x, y = target.y, z = target.z})
+end
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `targets` | table | required | Array of `{x, y, z}` block positions |
+| `max_nodes` | int | 50000 | Maximum A* nodes to explore |
+| `max_time_ms` | int | 2000 | Maximum pathfinding time |
+| `goal_tolerance` | float | 2.5 | Distance tolerance for reaching target |
+| `distance` | float | 1.0 | How close navigation should get |
+| `allow_jump_mine` | bool | false | Consider jump-mine vantage points |
+| `async` | bool | false | If true, starts navigation and returns immediately |
+
+**Return Values:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | bool | Whether a reachable target was found |
+| `target` | table | `{x, y, z}` of the chosen block |
+| `standing_pos` | table | `{x, y, z}` where to stand for mining |
+| `needs_jump` | bool | Whether mining requires jumping |
+| `jump_mine` | bool | Whether jump-mining is feasible (needs Jump Boost) |
+| `aim_point` | table | `{x, y, z}` precise aim coordinates |
+| `path_cost` | float | Navigation path cost |
+| `nodes_examined` | int | A* nodes examined |
+| `compute_time_ms` | int | Pathfinding computation time |
+| `has_jump_boost` | bool | Whether player has Jump Boost effect |
+| `failure_reason` | string | Why it failed (if `success = false`) |
+
+**Async Mode:**
+
+With `async = true`, the function starts navigation and returns immediately. Your script manages the navigation wait loop, which allows for interrupts (e.g., competition events).
+
+```lua
+local result = hexis.mining.mine_nearest({
+    targets = targets,
+    async = true
+})
+
+if result.success and hexis.navigate.is_navigating() then
+    while hexis.script.is_running() and hexis.navigate.is_navigating() do
+        -- Check for interrupts, competition events, etc.
+        hexis.wait(0.1)
+    end
+    -- Arrived — mine the tree
+    hexis.mining.mine_block({x = result.target.x, y = result.target.y, z = result.target.z})
+end
 ```
 
 ---
@@ -244,34 +381,6 @@ if result then
     -- result.aim_point = {x, y, z}
     -- result.score = number
     -- result.immediately_reachable = true (always)
-end
-```
-
----
-
-## Multi-Target Pathfinding
-
-### `hexis.mining.find_nearest_reachable(options)`
-
-Finds the nearest reachable block from a list of targets using **Multi-Target A*** algorithm.
-
-```lua
-local result = hexis.mining.find_nearest_reachable({
-    targets = trees,           -- Array of {x, y, z} positions
-    max_nodes = 50000,         -- Optional: max search nodes (default 50000)
-    max_time_ms = 2000,        -- Optional: max search time (default 2000ms)
-    goal_tolerance = 2.5       -- Optional: how close to get (default 2.5)
-})
-
-if result.success then
-    hexis.log.info("Found tree at " .. result.target.x .. ", " .. result.target.z)
-    -- result.target = {x, y, z}           - The block to mine
-    -- result.standing_pos = {x, y, z}     - Where to stand to mine it
-    -- result.path = {{x,y,z}, ...}        - Path from player to standing position
-    -- result.needs_jump = true/false      - Whether mining requires jumping
-    -- result.aim_point = {x, y, z}        - Where to aim to mine the block
-else
-    hexis.log.warn("No reachable tree: " .. result.failure_reason)
 end
 ```
 

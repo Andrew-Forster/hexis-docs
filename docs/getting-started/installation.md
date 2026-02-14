@@ -80,7 +80,7 @@ Most Fabric mods require the Fabric API library.
 
 Once in-game:
 
-- Press **Right Shift** to open the Hexis menu
+- Press **H** to open the Hexis menu
 - Browse available scripts or create your own
 - Configure settings as needed
 
@@ -131,7 +131,7 @@ function hexis.main()
 end
 ```
 
-4. In-game, press **Right Shift** to open the menu
+4. In-game, press **H** to open the menu
 5. Your script should appear in the list - click to run it!
 
 ---

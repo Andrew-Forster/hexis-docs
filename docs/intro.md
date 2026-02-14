@@ -49,7 +49,7 @@ function hexis.main()
 end
 ```
 
-Press **Right Shift** in-game to open the Hexis menu and run your script.
+Press **H** in-game to open the Hexis menu and run your script.
 
 ---
 
@@ -77,7 +77,10 @@ Hexis provides a rich set of APIs organized by functionality:
 ### Actions & Combat
 - **[Actions](/api/actions)** - Jump, sneak, equip, use items
 - **[Combat](/api/combat)** - Targeting, attacking, pursuit
-- **[Mining](/api/mining)** - Block breaking with smart aiming
+- **[Mining](/api/mining)** - Block breaking, mine_block, mine_nearest
+
+### Libraries
+- **[Script Libraries](/api/libraries)** - Reusable automation libraries (tree_mining, competition, island_nav)
 
 ### GUI & Inventory
 - **[GUI](/api/gui)** - Window interaction, item clicking
