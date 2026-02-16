@@ -55,3 +55,17 @@ Alternative to `sleep()` using seconds instead of milliseconds.
 hexis.wait(0.5)  -- Wait 500ms
 hexis.wait(2)    -- Wait 2 seconds
 ```
+
+---
+
+## `require(name)`
+
+Loads a library using standard Lua `require()` with sandboxed resolution. Libraries are resolved from `config/hexis/scripts/`.
+
+```lua
+local tree_mining = require("hypixel/lib/tree_mining")
+local island_nav = require("hypixel/lib/island_nav")
+local Competition = require("hypixel/lib/competition")
+```
+
+Libraries are loaded once and cached. The return value is the library's module table.

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 title: Player API
-description: Player information, position, and hotbar access
+description: Player information, position, and actions
 ---
 
 # Player API
@@ -30,8 +30,6 @@ Access via `hexis.player.<property>`:
 | `is_sprinting` | boolean | Currently sprinting |
 | `is_flying` | boolean | Currently flying |
 | `is_on_ground` | boolean | Standing on solid ground |
-| `held_item` | string | Name of held item (or nil) |
-| `held_slot` | number | Current hotbar slot (0-8) |
 | `name` | string | Player username |
 
 ```lua
@@ -42,7 +40,7 @@ hexis.log.info("Position: " .. pos.x .. ", " .. pos.y .. ", " .. pos.z)
 
 ---
 
-## Methods
+## Query Methods
 
 ### `hexis.player.get_nearest()`
 
@@ -64,58 +62,6 @@ local dist = hexis.player.horizontal_distance({x = 100, z = 200})
 if dist < 10 then
     hexis.log.info("Close to target!")
 end
-```
-
-### `hexis.player.hotbar_contains(pattern)`
-
-Returns `true` if any hotbar slot contains item matching pattern.
-
-- Pattern is case-insensitive
-- Supports partial matching
-- Supports regex if pattern contains `|` or starts with `^`
-
-```lua
-if hexis.player.hotbar_contains("scythe") then
-    hexis.log.info("Has a scythe!")
-end
-
--- Regex pattern
-if hexis.player.hotbar_contains("juju|terminator") then
-    hexis.log.info("Has a bow!")
-end
-```
-
-### `hexis.player.find_hotbar_slot(pattern)`
-
-Returns slot index (0-8) of first item matching pattern, or -1 if not found.
-
-```lua
-local slot = hexis.player.find_hotbar_slot("aspect")
-if slot >= 0 then
-    hexis.log.info("Aspect of the End in slot " .. slot)
-end
-```
-
-### `hexis.player.get_hotbar_items()`
-
-Returns table of all hotbar item names (1-indexed, Lua style).
-
-```lua
-local items = hexis.player.get_hotbar_items()
-for i, name in ipairs(items) do
-    if name then
-        hexis.log.info("Slot " .. i .. ": " .. name)
-    end
-end
-```
-
-### `hexis.player.jump()`
-
-Makes player jump if on ground.
-
-```lua
-hexis.player.jump()
-hexis.sleep(500)
 ```
 
 ### `hexis.player.can_reach_block(pos)`
@@ -147,4 +93,97 @@ local level = hexis.player.get_jump_boost_level()
 if level > 0 then
     hexis.log.info("Jump Boost " .. level .. " active!")
 end
+```
+
+---
+
+## Action Methods
+
+### `hexis.player.jump()`
+
+Makes player jump if on ground.
+
+```lua
+hexis.player.jump()
+hexis.sleep(500)
+```
+
+### `hexis.player.equip(opts)`
+
+Equips an item from hotbar matching a pattern.
+
+```lua
+hexis.player.equip({pattern = "scythe"})
+hexis.player.equip({name = "Juju Shortbow"})
+
+-- Multiple fallbacks (tries in order)
+hexis.player.equip({pattern = "scythe|sword"})
+```
+
+### `hexis.player.sneak(opts)`
+
+Sneaks with configurable count and delay.
+
+```lua
+hexis.player.sneak({duration = 1000})  -- Sneak for 1 second
+hexis.player.sneak({count = 3})        -- Sneak 3 times
+```
+
+### `hexis.player.look_at(opts)`
+
+Looks at a target location with smooth or instant aiming.
+
+```lua
+-- Smooth aim (for human-like movement)
+hexis.player.look_at({x = 100, y = 65, z = 200, speed = 2.0})
+
+-- Instant aim (for fast reactions)
+hexis.player.look_at({x = 100, y = 65, z = 200, instant = true})
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `x, y, z` | number | Required | Target coordinates |
+| `speed` | number | 3.0 | Aim speed multiplier |
+| `instant` | boolean | false | Skip smooth interpolation, snap directly |
+
+### `hexis.player.use_item()`
+
+Uses (right-clicks) the held item.
+
+```lua
+hexis.player.use_item()
+```
+
+### `hexis.player.interact_block(pos, opts)`
+
+Right-clicks a specific block at the given position.
+
+```lua
+hexis.player.interact_block({x = 100, y = 65, z = 200})
+```
+
+### `hexis.player.drop_item()`
+
+Drops the currently held item.
+
+```lua
+hexis.player.drop_item()
+```
+
+### `hexis.player.interact_entity(opts)`
+
+Clicks on (interacts with) an entity.
+
+```lua
+hexis.player.interact_entity({name = "Villager"})
+```
+
+### `hexis.player.sprint(opts)`
+
+Toggles sprint on or off.
+
+```lua
+hexis.player.sprint({enabled = true})   -- Start sprinting
+hexis.player.sprint({enabled = false})  -- Stop sprinting
 ```

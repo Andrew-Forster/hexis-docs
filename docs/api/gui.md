@@ -92,6 +92,17 @@ if hexis.gui.has_title("Bazaar") then
 end
 ```
 
+### `hexis.gui.get_hovered_item()`
+
+Returns information about the item currently under the cursor, or nil if no item is hovered.
+
+```lua
+local item = hexis.gui.get_hovered_item()
+if item then
+    hexis.log.info("Hovering: " .. item.name)
+end
+```
+
 ---
 
 ## Finding Items

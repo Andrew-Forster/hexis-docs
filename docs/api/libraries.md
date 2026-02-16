@@ -6,20 +6,20 @@ description: Reusable Lua libraries for common automation patterns
 
 # Script Libraries
 
-Hexis ships reusable Lua libraries that encapsulate common automation patterns. Libraries are loaded with `hexis.script.load_lib()` and live in `config/hexis/scripts/lib/`.
+Hexis ships reusable Lua libraries that encapsulate common automation patterns. Libraries are loaded with `require()` and live in `config/hexis/scripts/`.
 
 ---
 
 ## Loading Libraries
 
-### `hexis.script.load_lib(name)`
+### `require(name)`
 
-Loads a library from the `scripts/lib/` directory.
+Loads a library using standard Lua `require()` with sandboxed path resolution.
 
 ```lua
-local tree_mining = hexis.script.load_lib("tree_mining")
-local island_nav = hexis.script.load_lib("island_nav")
-local Competition = hexis.script.load_lib("competition")
+local tree_mining = require("hypixel/lib/tree_mining")
+local island_nav = require("hypixel/lib/island_nav")
+local Competition = require("hypixel/lib/competition")
 ```
 
 Libraries are loaded once and cached. The return value is the library's module table.
@@ -31,7 +31,7 @@ Libraries are loaded once and cached. The return value is the library's module t
 Tree mining orchestration. Scans connected log blocks and mines them with retry logic, deprioritization, and callbacks.
 
 ```lua
-local tree_mining = hexis.script.load_lib("tree_mining")
+local tree_mining = require("hypixel/lib/tree_mining")
 ```
 
 ### `tree_mining.scan_tree(trunk_pos, opts)`
@@ -109,9 +109,8 @@ local result = tree_mining.mine_all(trunk, {
     allow_jump = true,
     on_abort = function() return regen_detected end,
     on_unreachable = function(block)
-        -- Throw axe at unreachable block
-        hexis.actions.look_at({x = block.x + 0.5, y = block.y + 0.5, z = block.z + 0.5, speed = 2.5})
-        hexis.actions.right_click()
+        hexis.player.look_at({x = block.x + 0.5, y = block.y + 0.5, z = block.z + 0.5, speed = 2.5})
+        hexis.player.use_item()
         hexis.wait(1.0)
     end
 })
@@ -124,7 +123,7 @@ local result = tree_mining.mine_all(trunk, {
 Agatha Contest mode library. Handles opportunistic azalea breaking and tadpole catching during navigation. Uses an OOP pattern with per-instance state.
 
 ```lua
-local Competition = hexis.script.load_lib("competition")
+local Competition = require("hypixel/lib/competition")
 ```
 
 ### `Competition.new(opts)`
@@ -194,7 +193,7 @@ end
 Inter-island navigation with BFS pathfinding, launch pad detection, and world warp handling. Designed for The Park island network.
 
 ```lua
-local island_nav = hexis.script.load_lib("island_nav")
+local island_nav = require("hypixel/lib/island_nav")
 ```
 
 ### `island_nav.get_current_island(route)`

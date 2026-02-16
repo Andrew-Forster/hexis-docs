@@ -22,6 +22,10 @@ hexis.conditions.player_visible(distance, ms)   -- Player in line of sight
 hexis.conditions.player_sneaking(distance)      -- Sneaking player nearby
 ```
 
+:::tip Alternative Properties
+`player_sneaking()` checks for *other* sneaking players nearby. To check if *your* player is sneaking, use `hexis.player.is_sneaking`.
+:::
+
 ### Examples
 
 ```lua
@@ -59,14 +63,16 @@ end
 ## State Checks
 
 ```lua
-hexis.conditions.inventory_full()               -- Inventory is full
-hexis.conditions.gui_open(title_pattern)        -- GUI open (optional title)
-hexis.conditions.gui_closed(title_pattern)      -- GUI closed
 hexis.conditions.player_health("lt", 10)        -- Health comparison
-hexis.conditions.player_y("gt", 64)             -- Y coordinate comparison
 hexis.conditions.tablist_contains(pattern)      -- Tablist has entry
 hexis.conditions.distance_from_marked("lt", 5)  -- Distance from marked pos
 ```
+
+:::tip Moved Functions
+- `inventory_full()` has moved to `hexis.inventory.is_full()`
+- `gui_open()` has moved to `hexis.gui.is_open()`
+- `player_y()` can also be checked directly with `hexis.player.y`
+:::
 
 ### Health Comparison
 
@@ -74,7 +80,7 @@ hexis.conditions.distance_from_marked("lt", 5)  -- Distance from marked pos
 -- Check if health is less than 10
 if hexis.conditions.player_health("lt", 10) then
     hexis.log.warn("Low health!")
-    hexis.actions.use_item()  -- Use healing item
+    hexis.player.use_item()  -- Use healing item
 end
 
 -- Comparison operators: "lt", "gt", "eq", "lte", "gte"
@@ -84,7 +90,7 @@ end
 
 ```lua
 -- Check if player is above Y=64
-if hexis.conditions.player_y("gt", 64) then
+if hexis.player.y > 64 then
     hexis.log.info("Above sea level")
 end
 ```
@@ -118,7 +124,7 @@ end
 
 -- 10% chance
 if hexis.conditions.random(0.1) then
-    hexis.actions.jump()
+    hexis.player.jump()
 end
 ```
 
@@ -130,7 +136,7 @@ end
 -- Combined safety check
 local function is_safe()
     return hexis.conditions.no_players_nearby(30)
-       and not hexis.conditions.inventory_full()
+       and not hexis.inventory.is_full()
        and hexis.conditions.player_health("gt", 5)
 end
 

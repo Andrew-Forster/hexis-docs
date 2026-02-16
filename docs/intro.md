@@ -58,15 +58,15 @@ Press **H** in-game to open the Hexis menu and run your script.
 Hexis provides a rich set of APIs organized by functionality:
 
 ### Core
-- **[Core API](/api/core)** - Script control (`running()`, `sleep()`, `wait()`)
+- **[Core API](/api/core)** - Script control (`running()`, `sleep()`, `wait()`, `require()`)
 - **[Logging](/utilities/logging)** - Debug output and notifications
 - **[Timer](/utilities/timer)** - Session timing and stopwatch
 - **[Variables](/utilities/variables)** - Runtime state storage
 
 ### Player & World
-- **[Player](/api/player)** - Position, health, hotbar, inventory state
-- **[World](/api/world)** - Block queries, entity detection, visualization
-- **[Spatial](/api/spatial)** - Line of sight, danger analysis, walkability
+- **[Player](/api/player)** - Position, health, actions (equip, look, use item, interact)
+- **[World](/api/world)** - Block queries, entity detection, highlights, world text
+- **[Inventory](/api/inventory)** - Hotbar management, slot selection, inventory checks
 - **[Conditions](/api/conditions)** - Boolean checks for game state
 
 ### Navigation
@@ -74,21 +74,19 @@ Hexis provides a rich set of APIs organized by functionality:
 - **[Movement](/api/movement)** - Low-level movement control
 - **[Routes](/api/routes)** - Route file loading and traversal
 
-### Actions & Combat
-- **[Actions](/api/actions)** - Jump, sneak, equip, use items
+### Combat & Mining
 - **[Combat](/api/combat)** - Targeting, attacking, pursuit
 - **[Mining](/api/mining)** - Block breaking, mine_block, mine_nearest
 
 ### Libraries
 - **[Script Libraries](/api/libraries)** - Reusable automation libraries (tree_mining, competition, island_nav)
 
-### GUI & Inventory
+### GUI & HUD
 - **[GUI](/api/gui)** - Window interaction, item clicking
-- **[Inventory](/api/inventory)** - Inventory manipulation
 - **[HUD](/api/hud)** - On-screen display with variables
 
 ### Events & Communication
-- **[Events](/api/events)** - Sound, chat, and timer listeners
+- **[Events](/api/events)** - Sound, chat, tick, and timer listeners
 - **[Chat](/api/chat)** - Send messages and execute commands
 
 ---

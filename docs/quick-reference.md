@@ -24,8 +24,8 @@ end
 ## Check and Equip Item
 
 ```lua
-if hexis.player.hotbar_contains("scythe") then
-    hexis.actions.equip({name = "scythe"})
+if hexis.inventory.contains("scythe") then
+    hexis.player.equip({name = "scythe"})
 end
 ```
 
@@ -61,12 +61,73 @@ hexis.gui.close()
 
 ---
 
+## Inventory Management
+
+```lua
+-- Select a slot
+hexis.inventory.select_slot(0)
+
+-- Find an item
+local slot = hexis.inventory.find_slot("aspect")
+if slot >= 0 then
+    hexis.inventory.select_slot(slot)
+end
+
+-- Check if inventory is full
+if hexis.inventory.is_full() then
+    hexis.log.warn("Full!")
+end
+```
+
+---
+
+## Player Actions
+
+```lua
+-- Use held item (right-click)
+hexis.player.use_item()
+
+-- Drop item
+hexis.player.drop_item()
+
+-- Interact with a block
+hexis.player.interact_block({x = 100, y = 65, z = 200})
+
+-- Look at position
+hexis.player.look_at({x = 100, y = 65, z = 200, speed = 2.0})
+
+-- Sprint
+hexis.player.sprint({enabled = true})
+```
+
+---
+
+## World Highlights
+
+```lua
+-- Highlight a block
+hexis.world.highlight.block({x = 100, y = 65, z = 200}, {r = 1, g = 0, b = 0, a = 0.6})
+
+-- World text
+hexis.world.text_at({x = 100, y = 66, z = 200}, "Target")
+
+-- Clear all highlights
+hexis.world.highlight.clear()
+```
+
+---
+
 ## Event Listener
 
 ```lua
 hexis.events.on("sound", "experience_orb", function()
     kills = kills + 1
     hexis.hud.set_var("kills", kills)
+end)
+
+-- Tick event
+hexis.events.on("tick", nil, function()
+    -- runs every game tick
 end)
 ```
 
@@ -100,6 +161,15 @@ hexis.mining.start_loop({
 })
 -- Later...
 hexis.mining.stop_loop()
+```
+
+---
+
+## Load Libraries
+
+```lua
+local tree_mining = require("hypixel/lib/tree_mining")
+local island_nav = require("hypixel/lib/island_nav")
 ```
 
 ---

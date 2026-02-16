@@ -38,10 +38,10 @@ Always call `hexis.gui.safe_mode()` before GUI operations:
 
 ```lua
 hexis.gui.safe_mode()  -- Stop all activity first
-hexis.gui.open()
+hexis.inventory.open()
 hexis.sleep(300)
 -- ... GUI operations ...
-hexis.gui.close()
+hexis.inventory.close()
 ```
 
 ---

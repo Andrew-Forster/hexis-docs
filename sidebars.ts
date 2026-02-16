@@ -35,8 +35,8 @@ const sidebars: SidebarsConfig = {
       label: 'Player & World',
       items: [
         'api/player',
+        'api/inventory',
         'api/world',
-        'api/spatial',
         'api/conditions',
       ],
     },
@@ -52,24 +52,22 @@ const sidebars: SidebarsConfig = {
       ],
     },
 
-    // Actions & Combat
+    // Combat & Mining
     {
       type: 'category',
-      label: 'Actions & Combat',
+      label: 'Combat & Mining',
       items: [
-        'api/actions',
         'api/combat',
         'api/mining',
       ],
     },
 
-    // GUI & Inventory
+    // GUI & HUD
     {
       type: 'category',
-      label: 'GUI & Inventory',
+      label: 'GUI & HUD',
       items: [
         'api/gui',
-        'api/inventory',
         'api/hud',
       ],
     },
@@ -84,12 +82,12 @@ const sidebars: SidebarsConfig = {
       ],
     },
 
-    // Advanced
+    // Libraries
     {
       type: 'category',
-      label: 'Advanced',
+      label: 'Libraries',
       items: [
-        'api/opportunistic',
+        'api/libraries',
       ],
     },
 

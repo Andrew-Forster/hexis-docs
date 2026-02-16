@@ -158,6 +158,32 @@ hexis.navigate.look_at("pillar_1")
 
 ---
 
+## Debug Tools
+
+### `hexis.navigate.debug_heatmap(opts)`
+
+Renders a pathfinding heatmap for debugging navigation issues.
+
+```lua
+hexis.navigate.debug_heatmap({
+    radius = 20,
+    height = 5
+})
+```
+
+### `hexis.navigate.debug_heatmap_analysis(opts)`
+
+Performs analysis on the pathfinding heatmap data.
+
+```lua
+hexis.navigate.debug_heatmap_analysis({
+    radius = 20,
+    height = 5
+})
+```
+
+---
+
 ## Multi-Target Mining Navigation
 
 :::tip When to use Multi-Target A*
@@ -181,7 +207,7 @@ if result.success then
     hexis.log.info("Ready to mine at " .. result.target.x)
 
     if result.jump_mine then
-        hexis.actions.jump()
+        hexis.player.jump()
         hexis.wait(0.3)
     end
 

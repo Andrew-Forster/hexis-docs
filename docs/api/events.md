@@ -18,7 +18,7 @@ Register callbacks for game events.
 
 Registers an event listener.
 
-**Types:** `"sound"`, `"chat"`
+**Types:** `"sound"`, `"chat"`, `"tick"`
 
 ```lua
 -- Sound event
@@ -29,6 +29,11 @@ end)
 -- Chat event
 hexis.events.on("chat", "RARE DROP", function(message)
     hexis.log.info("Got rare drop: " .. message)
+end)
+
+-- Tick event (~20 per second)
+hexis.events.on("tick", nil, function()
+    -- Runs every game tick
 end)
 ```
 
@@ -48,6 +53,18 @@ Removes all event listeners.
 
 ```lua
 hexis.events.clear()
+```
+
+---
+
+## Event Processing
+
+### `hexis.events.process()`
+
+Manually process queued tick events. Useful when you need to force-process events outside the normal tick cycle.
+
+```lua
+hexis.events.process()
 ```
 
 ---
@@ -89,10 +106,15 @@ end)
 
 -- Track rare drops via chat
 hexis.events.on("chat", "RARE DROP", function(message)
-    hexis.actions.notify({
-        title = "Rare Drop!",
-        message = message
-    })
+    hexis.player.use_item()  -- Celebration right-click
+end)
+
+-- Per-tick processing
+hexis.events.on("tick", nil, function()
+    -- Check something every tick
+    if hexis.player.health_percent < 20 then
+        hexis.log.warn("Low health!")
+    end
 end)
 
 -- Periodic stats update
