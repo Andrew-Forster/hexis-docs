@@ -46,7 +46,21 @@ end
 if state.age then
     hexis.log.info("Age: " .. state.age)
 end
+
+-- Fluid blocks include extra properties
+if state.is_fluid then
+    hexis.log.info("Source block: " .. tostring(state.is_source))
+    hexis.log.info("Fluid level: " .. state.fluid_level)
+end
 ```
+
+Fluid blocks (water, lava) include additional fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `is_fluid` | boolean | `true` if block contains fluid |
+| `is_source` | boolean | `true` if source block (not flowing) |
+| `fluid_level` | number | Fluid level (8 = full source, 1-7 = flowing) |
 
 ### `hexis.world.is_block_air(x, y, z)`
 
@@ -222,6 +236,58 @@ Clears all world text.
 
 ```lua
 hexis.world.clear_text()
+```
+
+---
+
+## Entity Queries
+
+### `hexis.world.get_nearby_entities(radius, options)`
+
+Returns a table of entities within the given radius. Supports filtering by type.
+
+```lua
+-- Get all entities within 10 blocks
+local entities = hexis.world.get_nearby_entities(10)
+
+-- Filter by type
+local zombies = hexis.world.get_nearby_entities(15, {type = "zombie"})
+
+-- Fishing bobber detection
+local bobbers = hexis.world.get_nearby_entities(30, {type = "fishing_bobber"})
+for _, b in ipairs(bobbers) do
+    if b.is_own_projectile then
+        hexis.log.info("My bobber at: " .. b.x .. ", " .. b.y .. ", " .. b.z)
+    end
+end
+```
+
+Each entity table contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Entity display name |
+| `type` | string | Entity type (e.g., `"Zombie"`) |
+| `type_id` | string | Registry ID (e.g., `"minecraft:zombie"`) |
+| `x, y, z` | number | Entity position |
+| `distance` | number | Distance from player |
+| `aim_point` | table | `{x, y, z}` — eye position for living entities, bounding box center for others |
+| `box` | table | Bounding box dimensions |
+
+**Fishing bobber entities** include additional fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `is_own_projectile` | boolean | `true` if this bobber belongs to the player |
+| `owner` | string | Name of the player who cast this bobber |
+
+```lua
+-- Aim at nearest entity using aim_point
+local mobs = hexis.world.get_nearby_entities(10, {type = "zombie"})
+if #mobs > 0 then
+    hexis.player.look_at(mobs[1].aim_point)
+    hexis.player.left_click()
+end
 ```
 
 ---

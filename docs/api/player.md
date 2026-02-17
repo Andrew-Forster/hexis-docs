@@ -147,6 +147,16 @@ hexis.player.look_at({x = 100, y = 65, z = 200, instant = true})
 | `speed` | number | 3.0 | Aim speed multiplier |
 | `instant` | boolean | false | Skip smooth interpolation, snap directly |
 
+### `hexis.player.left_click()`
+
+Performs a single left-click (attack). Uses direct client input simulation for proper hit detection.
+
+```lua
+-- Attack the entity you're looking at
+hexis.player.look_at({x = 100, y = 65, z = 200, instant = true})
+hexis.player.left_click()
+```
+
 ### `hexis.player.use_item()`
 
 Uses (right-clicks) the held item.

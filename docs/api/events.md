@@ -21,9 +21,9 @@ Registers an event listener.
 **Types:** `"sound"`, `"chat"`, `"tick"`
 
 ```lua
--- Sound event
-local id = hexis.events.on("sound", "experience_orb", function(sound)
-    hexis.log.info("XP sound: " .. sound)
+-- Sound event (callback receives a table with sound data)
+local id = hexis.events.on("sound", "experience_orb", function(event)
+    hexis.log.info("XP sound at: " .. event.x .. ", " .. event.y .. ", " .. event.z)
 end)
 
 -- Chat event
@@ -93,15 +93,41 @@ end)
 
 ---
 
+---
+
+## Sound Event Data
+
+Sound event callbacks receive a table with the following fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Sound identifier (e.g., `"entity.fishing_bobber.splash"`) |
+| `volume` | number | Sound volume |
+| `pitch` | number | Sound pitch |
+| `timestamp` | number | When the sound was played |
+| `x` | number | X coordinate of sound source |
+| `y` | number | Y coordinate of sound source |
+| `z` | number | Z coordinate of sound source |
+
+```lua
+hexis.events.on("sound", "entity.fishing_bobber.splash", function(event)
+    hexis.log.info("Splash at: " .. event.x .. ", " .. event.y .. ", " .. event.z)
+    hexis.log.info("Volume: " .. event.volume .. " Pitch: " .. event.pitch)
+end)
+```
+
+---
+
 ## Example Usage
 
 ```lua
 local kills = 0
 
--- Track kills via sound
-hexis.events.on("sound", "experience_orb", function()
+-- Track kills via sound (with position)
+hexis.events.on("sound", "experience_orb", function(event)
     kills = kills + 1
     hexis.hud.set_var("kills", kills)
+    hexis.log.debug("XP at: " .. event.x .. ", " .. event.y .. ", " .. event.z)
 end)
 
 -- Track rare drops via chat
