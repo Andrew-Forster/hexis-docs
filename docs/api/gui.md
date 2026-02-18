@@ -125,15 +125,54 @@ end
 
 ### `hexis.gui.get_slot_info(slot)`
 
-Gets detailed information about a slot.
+Gets detailed information about a single slot.
 
-Returns a table with: `id`, `name`, `type`, `row`, `col`, `color`, `empty`, `lore`
+Returns a table with: `id`, `name`, `type`, `row`, `col`, `color`, `empty`, `lore`, `count`, `has_glint`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | number | Slot index |
+| `name` | string | Item display name |
+| `type` | string | Item type identifier |
+| `row` | number | Row in container (0-indexed) |
+| `col` | number | Column in container (0-indexed) |
+| `color` | string | Dyed color name ("red", "blue", etc. or "none") |
+| `empty` | boolean | Whether slot is empty |
+| `count` | number | Stack size (0 if empty) |
+| `has_glint` | boolean | Whether item has enchantment glint (foil effect) |
+| `lore` | table | Array of lore line strings |
 
 ```lua
 local info = hexis.gui.get_slot_info(5)
-if info then
-    hexis.log.info("Slot 5 has: " .. info.name)
+if info and not info.empty then
+    hexis.log.info("Slot 5: " .. info.name .. " x" .. info.count)
+    if info.has_glint then
+        hexis.log.info("  Has enchantment glint!")
+    end
 end
+```
+
+### `hexis.gui.get_slots(from, to)`
+
+Bulk-scans a range of slots and returns an array of slot info tables. Each entry has the same fields as `get_slot_info`.
+
+```lua
+-- Scan all container slots (e.g., first 54 slots of a double chest)
+local slots = hexis.gui.get_slots(0, 53)
+for _, slot in ipairs(slots) do
+    if not slot.empty and slot.has_glint then
+        hexis.log.info("Glinting item at slot " .. slot.id .. ": " .. slot.name)
+    end
+end
+```
+
+### `hexis.gui.get_container_size()`
+
+Returns the number of container slots (excluding player inventory). Useful to know the range for `get_slots`.
+
+```lua
+local size = hexis.gui.get_container_size()
+local slots = hexis.gui.get_slots(0, size - 1)
 ```
 
 ---
