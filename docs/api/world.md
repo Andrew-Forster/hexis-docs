@@ -166,6 +166,55 @@ Clears all entity highlights.
 hexis.world.highlight.clear_entities()
 ```
 
+### `hexis.world.highlight.glow(entity_id, options)`
+
+Adds a model-contour glow outline and translucent tint fill to an entity. Unlike `highlight.entity()` which draws a bounding box, this renders directly on the entity's 3D model (including armor and held items).
+
+```lua
+-- Simple glow with default red
+hexis.world.highlight.glow(entity.id)
+
+-- Custom color (r, g, b values 0-1)
+hexis.world.highlight.glow(entity.id, {r = 0, g = 1, b = 0, a = 0.4})
+
+-- Separate outline and tint colors
+hexis.world.highlight.glow(entity.id, {
+    outline = {r = 1, g = 0, b = 0},          -- Red edge outline
+    tint = {r = 1, g = 0, b = 0, a = 0.3}     -- Semi-transparent red fill
+})
+```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `r, g, b` | number | Color (0-1) applied to both outline and tint |
+| `a` | number | Tint alpha (0-1, default 0.33) |
+| `outline` | table | `{r, g, b}` for outline edge color only |
+| `tint` | table | `{r, g, b, a}` for model fill color only |
+
+### `hexis.world.highlight.unglow(entity_id)`
+
+Removes glow from a specific entity.
+
+```lua
+hexis.world.highlight.unglow(entity.id)
+```
+
+### `hexis.world.highlight.glow_rainbow(entity_id)`
+
+Sets a rainbow cycling glow effect on an entity. The color smoothly cycles through the full spectrum on a 3-second loop.
+
+```lua
+hexis.world.highlight.glow_rainbow(target.id)
+```
+
+### `hexis.world.highlight.clear_glow()`
+
+Clears all glow highlights and rainbow effects.
+
+```lua
+hexis.world.highlight.clear_glow()
+```
+
 ### `hexis.world.highlight.tree(blocks, color)`
 
 Highlights multiple blocks representing a tree or structure.
@@ -210,7 +259,7 @@ hexis.world.highlight.clear_text()
 
 ### `hexis.world.highlight.clear()`
 
-Clears ALL highlight types (blocks, entities, tree, text).
+Clears ALL highlight types (blocks, entities, glow, tree, text).
 
 ```lua
 hexis.world.highlight.clear()
