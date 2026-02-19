@@ -236,7 +236,7 @@ hexis.world.highlight.clear_tree()
 
 ### `hexis.world.highlight.text(pos, text_or_opts)`
 
-Renders floating text at a world position.
+Renders floating NanoVG text at a world position. Uses Inter font for crisp, non-pixelated text.
 
 ```lua
 -- Simple text
@@ -245,13 +245,25 @@ hexis.world.highlight.text({x = 100, y = 66, z = 200}, "Hello!")
 -- With options
 hexis.world.highlight.text({x = 100, y = 66, z = 200}, {
     text = "Target",
-    color = {r = 1, g = 1, b = 0}
+    color = 0xFFFFFF00,         -- ARGB yellow
+    bg = 0xB2000000,            -- 70% opacity black
+    font_size = 16,             -- Pixel size (default 13)
+    font_weight = "bold",       -- "bold", "medium", or "regular"
 })
 ```
 
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `text` | string | `""` | The text to display |
+| `id` | string | auto-generated | Label ID for later removal via `remove_text(id)` |
+| `color` | number | `0xFFFFFFFF` | Text color (ARGB hex) |
+| `bg` | number | `0xB2000000` | Background pill color (ARGB hex, 70% black) |
+| `font_size` | number | `13` | Font size in pixels |
+| `font_weight` | string | `"bold"` | Font weight: `"bold"`, `"medium"`, or `"regular"` |
+
 ### `hexis.world.highlight.clear_text()`
 
-Clears all highlight text.
+Clears all highlight text (both world and entity text).
 
 ```lua
 hexis.world.highlight.clear_text()
@@ -441,25 +453,68 @@ Clear all block watches.
 
 ---
 
-## World Text (Aliases)
+## World Text
 
-These are convenience aliases for `hexis.world.highlight.text` and `hexis.world.highlight.clear_text`.
+NanoVG-rendered text in world space. Uses Inter font for crisp, resolution-independent text. Both static (world position) and entity-following variants available.
 
 ### `hexis.world.text_at(pos, text_or_opts)`
 
-Renders floating text at a world position.
+Renders floating NanoVG text at a world position. Returns a label ID string.
 
 ```lua
+-- Simple text
 hexis.world.text_at({x = 100, y = 66, z = 200}, "Hello!")
+
+-- With full options
+local id = hexis.world.text_at({x = 100, y = 66, z = 200}, {
+    text = "Spawn Point",
+    id = "spawn_label",         -- Reusable ID for upsert
+    color = 0xFF00FF00,         -- Green text (ARGB)
+    bg = 0xB2000000,            -- 70% opacity black bg
+    font_size = 16,
+    font_weight = "medium",     -- "bold", "medium", "regular"
+})
 ```
+
+### `hexis.world.text_at_entity(entity_id, opts)`
+
+Renders NanoVG text that follows an entity. Text floats above the entity's head.
+
+```lua
+hexis.world.text_at_entity(player.id, {
+    text = "Target",
+    color = 0xFFFF4444,         -- Red text
+    bg = 0xB2000000,            -- 70% opacity black bg
+    y_offset = 0.5,             -- Blocks above head (default 0.5)
+    font_size = 13,
+    font_weight = "bold",
+})
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `text` | string | `""` | The text to display |
+| `color` | number | `0xFFFF4444` | Text color (ARGB hex) |
+| `bg` | number | `0xB2000000` | Background pill color (ARGB hex) |
+| `y_offset` | number | `0.5` | Blocks above entity head |
+| `font_size` | number | `13` | Font size in pixels |
+| `font_weight` | string | `"bold"` | Font weight: `"bold"`, `"medium"`, or `"regular"` |
+
+### `hexis.world.remove_text(id)`
+
+Remove a specific world text label by its ID.
+
+### `hexis.world.remove_entity_text(entity_id)`
+
+Remove the text label from a specific entity.
 
 ### `hexis.world.clear_text()`
 
-Clears all world text.
+Clears all world text and entity text for this script.
 
-```lua
-hexis.world.clear_text()
-```
+### `hexis.world.clear_entity_text()`
+
+Clears only entity-following text labels for this script.
 
 ---
 
@@ -519,7 +574,7 @@ end
 
 ### `hexis.world.get_nearby_players(radius, options)`
 
-Returns table of players within radius.
+Returns table of players within radius. Each player has `id` (entity ID), `name`, position (`x`, `y`, `z`), and `distance`.
 
 ```lua
 local players = hexis.world.get_nearby_players(30, {
@@ -528,9 +583,16 @@ local players = hexis.world.get_nearby_players(30, {
 })
 
 for _, player in ipairs(players) do
-    hexis.log.info(player.name .. " at distance " .. player.distance)
+    hexis.log.info(player.name .. " (id=" .. player.id .. ") at distance " .. player.distance)
 end
 ```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | number | Entity ID (use with `text_at_entity`, `glow_entity`, etc.) |
+| `name` | string | Player display name |
+| `x, y, z` | number | Player position |
+| `distance` | number | Distance from local player |
 
 ### `hexis.world.players_in_zone(zone, options)`
 
