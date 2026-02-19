@@ -211,6 +211,61 @@ hexis.gui.click_item_by_lore("Click to sell")
 
 ---
 
+## Slot Watcher
+
+Main-thread slot watcher for detecting item changes in real-time. Useful for games like Chronomatron where items change too fast for cross-thread polling to catch.
+
+The watcher runs on the main client tick thread, detecting changes via both individual slot packets and bulk content packets. Changes are queued and consumed from Lua via `poll_slot_changes()`.
+
+### `hexis.gui.watch_slots(slot_ids)`
+
+Start watching specific slots for item changes.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `slot_ids` | table | Array of slot indices to watch |
+
+```lua
+-- Watch slots 12, 13, 14 and the control slot
+hexis.gui.watch_slots({12, 13, 14, 49})
+```
+
+### `hexis.gui.poll_slot_changes()`
+
+Drains all pending slot change events from the watcher queue. Returns an array of change tables.
+
+Each change table has:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `slot` | number | Slot index that changed |
+| `type` | string | Item type identifier |
+| `name` | string | Item display name |
+| `has_foil` | boolean | Whether item has enchantment glint |
+
+```lua
+local changes = hexis.gui.poll_slot_changes()
+for _, c in ipairs(changes) do
+    if c.has_foil then
+        hexis.log.info("Slot " .. c.slot .. " gained foil: " .. c.name)
+    end
+end
+```
+
+### `hexis.gui.stop_watching()`
+
+Stops the slot watcher and clears all state.
+
+```lua
+hexis.gui.stop_watching()
+```
+
+:::tip When to Use
+Use the slot watcher when you need to detect **transient** item changes that happen faster than your script's poll rate. For static reads, `get_slot_info()` is simpler and sufficient.
+:::
+
+---
+
 ## Hotbar
 
 ### `hexis.gui.switch_hotbar(slot)`
