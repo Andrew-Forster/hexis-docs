@@ -95,6 +95,32 @@ if level > 0 then
 end
 ```
 
+### `hexis.player.get_effect(name)`
+
+Returns information about an active potion effect, or `nil` if not active.
+
+Supports: `jump_boost`, `speed`, `haste`, `strength`, `regeneration`, `resistance`, `fire_resistance`, `water_breathing`, `invisibility`, `night_vision`, `slow_falling`, `absorption`, `saturation`, `slowness`, `mining_fatigue`, `nausea`, `blindness`, `hunger`, `weakness`, `poison`, `wither`, `health_boost`, `glowing`, `levitation`, `luck`
+
+```lua
+local jb = hexis.player.get_effect("jump_boost")
+if jb then
+    hexis.log.info("Jump Boost " .. jb.level .. " (" .. string.format("%.1f", jb.duration) .. "s)")
+end
+
+local haste = hexis.player.get_effect("haste")
+if haste and haste.level >= 2 then
+    hexis.log.info("Haste II+ active!")
+end
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `active` | boolean | Always `true` when returned |
+| `level` | number | Effect level (1 = I, 2 = II, etc.) |
+| `amplifier` | number | Raw amplifier (level - 1) |
+| `duration` | number | Remaining duration in seconds |
+| `ambient` | boolean | `true` if from a beacon |
+
 ---
 
 ## Action Methods

@@ -98,6 +98,10 @@ hexis.player.look_at({x = 100, y = 65, z = 200, speed = 2.0})
 
 -- Sprint
 hexis.player.sprint({enabled = true})
+
+-- Check potion effects
+local haste = hexis.player.get_effect("haste")
+if haste then hexis.log.info("Haste " .. haste.level) end
 ```
 
 ---
@@ -107,6 +111,14 @@ hexis.player.sprint({enabled = true})
 ```lua
 -- Highlight a block
 hexis.world.highlight.block({x = 100, y = 65, z = 200}, {r = 1, g = 0, b = 0, a = 0.6})
+
+-- Zone box (two corners, custom fill/border/thickness)
+local id = hexis.world.highlight_zone(
+    {x = 90, y = 60, z = 190},
+    {x = 110, y = 70, z = 210},
+    { fill = {r = 0, g = 1, b = 0, a = 0.1}, border = {r = 0, g = 1, b = 0, a = 0.8} }
+)
+hexis.world.remove_zone_highlight(id)  -- Remove later
 
 -- World text
 hexis.world.text_at({x = 100, y = 66, z = 200}, "Target")

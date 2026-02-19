@@ -259,11 +259,185 @@ hexis.world.highlight.clear_text()
 
 ### `hexis.world.highlight.clear()`
 
-Clears ALL highlight types (blocks, entities, glow, tree, text).
+Clears ALL highlight types (blocks, entities, glow, tree, zones, animated, text).
 
 ```lua
 hexis.world.highlight.clear()
 ```
+
+---
+
+## Zone Highlights
+
+Render 3D boxes between two corner positions with full control over fill color, border color, and border thickness. Useful for visualizing areas, debug zones, and spatial regions.
+
+### `hexis.world.highlight_zone(min, max, options)`
+
+Renders a 3D box between two corner block positions. Returns a zone **ID** (number) for later removal.
+
+Coordinates are block positions — the zone expands to cover the full block at each corner (e.g., `{x=0}` to `{x=5}` covers 6 blocks).
+
+```lua
+-- Basic zone with defaults (green, translucent fill, solid border)
+local id = hexis.world.highlight_zone(
+    { x = 100, y = 60, z = 200 },
+    { x = 110, y = 65, z = 210 }
+)
+
+-- Custom colors and thickness
+local id = hexis.world.highlight_zone(
+    { x = 100, y = 60, z = 200 },
+    { x = 110, y = 65, z = 210 },
+    {
+        fill = { r = 1.0, g = 0.0, b = 0.0, a = 0.1 },     -- Translucent red fill
+        border = { r = 1.0, g = 0.0, b = 0.0, a = 0.8 },   -- Solid red border
+        thickness = 0.06                                       -- Thicker border lines
+    }
+)
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `fill` | table | `{r=0.2, g=1.0, b=0.2, a=0.15}` | Fill color `{r, g, b, a}` (0-1) |
+| `border` | table | `{r=0.2, g=1.0, b=0.2, a=1.0}` | Border color `{r, g, b, a}` (0-1) |
+| `thickness` | number | `0.04` | Border line thickness |
+
+### `hexis.world.remove_zone_highlight(id)`
+
+Removes a specific zone by its ID (returned from `highlight_zone`).
+
+```lua
+local id = hexis.world.highlight_zone(min, max)
+-- Later...
+hexis.world.remove_zone_highlight(id)
+```
+
+### `hexis.world.clear_zone_highlights()`
+
+Clears all zone highlights created by the current script.
+
+```lua
+hexis.world.clear_zone_highlights()
+```
+
+Also available via the highlight subtable:
+- `hexis.world.highlight.zone(min, max, opts)` — same as `highlight_zone`
+- `hexis.world.highlight.remove_zone(id)` — same as `remove_zone_highlight`
+- `hexis.world.highlight.clear_zones()` — same as `clear_zone_highlights`
+
+---
+
+## Animated Block Highlights
+
+Smooth animated highlights that lerp between positions. Useful for showing current and next mining/navigation targets.
+
+### `hexis.world.highlight_block_animated(pos, color, speed)`
+
+Sets a smooth animated highlight on a block with exponential ease-out interpolation.
+
+```lua
+-- Default cyan highlight
+hexis.world.highlight_block_animated({x = 100, y = 65, z = 200})
+
+-- Custom color and speed
+hexis.world.highlight_block_animated(
+    {x = 100, y = 65, z = 200},
+    {r = 1.0, g = 0.5, b = 0.0, a = 0.8},  -- Orange
+    20.0                                       -- Faster animation
+)
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `pos` | table | Required | `{x, y, z}` block position |
+| `color` | table | `{r=0.2, g=0.8, b=1.0, a=0.8}` | Color `{r, g, b, a}` (0-1) |
+| `speed` | number | `15.0` | Animation speed (higher = faster lerp) |
+
+### `hexis.world.highlight_secondary_target(pos, color, speed)`
+
+Sets a secondary/preview highlight. More transparent and slower — useful for showing "next target" while mining current block.
+
+```lua
+hexis.world.highlight_secondary_target(
+    {x = 105, y = 65, z = 200},
+    {r = 0.5, g = 0.5, b = 0.8, a = 0.4},  -- Dim purple
+    8.0                                        -- Slow animation
+)
+```
+
+### `hexis.world.clear_animated_highlight()`
+
+Clears the primary animated highlight with a smooth fade-out.
+
+### `hexis.world.clear_secondary_highlight()`
+
+Clears the secondary animated highlight.
+
+### `hexis.world.is_highlight_active()`
+
+Returns `true` if an animated highlight is currently active.
+
+---
+
+## Water Detection
+
+### `hexis.world.find_water(radius)`
+
+Finds the nearest water block within the given radius. Returns `{x, y, z}` at the water surface, or `nil`.
+
+```lua
+local water = hexis.world.find_water(20)
+if water then
+    hexis.log.info("Water at: " .. water.x .. ", " .. water.y .. ", " .. water.z)
+end
+```
+
+### `hexis.world.is_in_water()`
+
+Returns `true` if the player is currently in water.
+
+### `hexis.world.is_water_at(x, y, z)`
+
+Returns `true` if the block at the given position is water.
+
+```lua
+if hexis.world.is_water_at(100, 64, 200) then
+    hexis.log.info("Water block!")
+end
+```
+
+---
+
+## Block Utilities
+
+### `hexis.world.has_exposed_face(x, y, z)`
+
+Returns `true` if the block has at least one non-solid neighbor (i.e., it's not fully buried). Useful for filtering scan results to only mineable blocks.
+
+```lua
+local blocks = hexis.world.scan_blocks({match_patterns = {"diamond_ore"}, radius = 10})
+for _, b in ipairs(blocks) do
+    if hexis.world.has_exposed_face(b.x, b.y, b.z) then
+        hexis.log.info("Exposed ore at " .. b.x .. "," .. b.y .. "," .. b.z)
+    end
+end
+```
+
+### `hexis.world.watch_block(x, y, z)`
+
+Start watching a block position for state changes. Changes fire via `block_change` events.
+
+```lua
+hexis.world.watch_block(100, 65, 200)
+```
+
+### `hexis.world.unwatch_block(x, y, z)`
+
+Stop watching a specific block position.
+
+### `hexis.world.clear_watches()`
+
+Clear all block watches.
 
 ---
 
@@ -357,3 +531,24 @@ for _, player in ipairs(players) do
     hexis.log.info(player.name .. " at distance " .. player.distance)
 end
 ```
+
+### `hexis.world.players_in_zone(zone, options)`
+
+Counts players within a zone AABB.
+
+```lua
+local result = hexis.world.players_in_zone(
+    { min = {x = 90, y = 60, z = 190}, max = {x = 110, y = 80, z = 210} },
+    { exclude_self = true, filter_tablist = true }
+)
+
+hexis.log.info("Players in zone: " .. result.count)
+for _, name in ipairs(result.names) do
+    hexis.log.info("  - " .. name)
+end
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `count` | number | Number of players found |
+| `names` | table | Array of player name strings |

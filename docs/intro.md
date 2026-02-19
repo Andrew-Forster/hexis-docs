@@ -9,8 +9,8 @@ description: Introduction to the Hexis Lua scripting API
 
 Welcome to the Hexis documentation. Hexis is a powerful Lua scripting engine for Minecraft that enables intelligent automation through a comprehensive API.
 
-**Current Version:** 1.0.0
-**Minecraft:** 1.21.8 (Fabric)
+**Current Version:** 0.9.283
+**Minecraft:** 1.21.11 (Fabric)
 **Lua Engine:** LuaJ (Lua 5.2 compatible)
 
 ---
@@ -65,7 +65,7 @@ Hexis provides a rich set of APIs organized by functionality:
 
 ### Player & World
 - **[Player](/api/player)** - Position, health, actions (equip, look, use item, interact)
-- **[World](/api/world)** - Block queries, entity detection, highlights, world text
+- **[World](/api/world)** - Block queries, entity detection, highlights, zone rendering, world text
 - **[Inventory](/api/inventory)** - Hotbar management, slot selection, inventory checks
 - **[Conditions](/api/conditions)** - Boolean checks for game state
 
