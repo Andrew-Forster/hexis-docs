@@ -389,6 +389,20 @@ Clears the secondary animated highlight.
 
 Returns `true` if an animated highlight is currently active.
 
+### `hexis.world.set_highlight_esp(enabled)`
+
+Toggle ESP mode for animated highlights. When enabled (default), highlights render through walls. When disabled, highlights are occluded by blocks.
+
+```lua
+-- Disable ESP (normal depth testing)
+hexis.world.set_highlight_esp(false)
+
+-- Enable ESP (visible through walls, default)
+hexis.world.set_highlight_esp(true)
+```
+
+Also available as `hexis.world.highlight.set_esp(enabled)`.
+
 ---
 
 ## Water Detection

@@ -157,21 +157,47 @@ hexis.player.sneak({count = 3})        -- Sneak 3 times
 
 ### `hexis.player.look_at(opts)`
 
-Looks at a target location with smooth or instant aiming.
+Smoothly rotates the camera toward a target location. Uses physics-based spring-damper movement for human-like aim.
+
+:::warning Blocking Call
+`look_at` is a **blocking call** — it does not return until the camera has settled within ~1° of the target (up to a 3-second timeout). **Do not call it in a tight loop.** Each invocation resets camera velocity, so calling it repeatedly prevents the camera from ever building speed, resulting in sluggish movement.
+:::
+
+**Correct pattern** — call once, then act:
+```lua
+-- Look at the target (blocks until settled)
+hexis.player.look_at({x = 100, y = 65, z = 200})
+-- Now act
+hexis.player.use_item()
+```
+
+**Wrong pattern** — do NOT do this:
+```lua
+-- BAD: Calling look_at in a loop kills camera velocity each time
+while true do
+    hexis.player.look_at({x = target.x, y = target.y, z = target.z})
+    hexis.player.use_item()
+    hexis.wait(0.05)
+end
+```
 
 ```lua
--- Smooth aim (for human-like movement)
-hexis.player.look_at({x = 100, y = 65, z = 200, speed = 2.0})
+-- Smooth aim (default, recommended)
+hexis.player.look_at({x = 100, y = 65, z = 200})
 
--- Instant aim (for fast reactions)
+-- Slower aim
+hexis.player.look_at({x = 100, y = 65, z = 200, speed = 1.0})
+
+-- Instant aim (rate-limited for safety, not truly instant)
 hexis.player.look_at({x = 100, y = 65, z = 200, instant = true})
 ```
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `x, y, z` | number | Required | Target coordinates |
-| `speed` | number | 3.0 | Aim speed multiplier |
-| `instant` | boolean | false | Skip smooth interpolation, snap directly |
+| `speed` | number | 3.0 | Aim speed (1.0 = gentle, 3.0 = fast, 5.0 = aggressive) |
+| `instant` | boolean | false | Skip smooth interpolation (still rate-limited) |
+| `target` | string | - | Named target: `"nearest_entity"`, `"nearest_player"`, `"marked_position"` |
 
 ### `hexis.player.left_click()`
 
