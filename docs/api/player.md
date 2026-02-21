@@ -157,47 +157,66 @@ hexis.player.sneak({count = 3})        -- Sneak 3 times
 
 ### `hexis.player.look_at(opts)`
 
-Smoothly rotates the camera toward a target location. Uses physics-based spring-damper movement for human-like aim.
+Smoothly rotates the camera toward a target. Supports two modes:
 
-:::warning Blocking Call
-`look_at` is a **blocking call** — it does not return until the camera has settled within ~1° of the target (up to a 3-second timeout). **Do not call it in a tight loop.** Each invocation resets camera velocity, so calling it repeatedly prevents the camera from ever building speed, resulting in sluggish movement.
+#### Static Mode (coordinates / string targets)
+
+Blocks until the camera settles within ~1° of the target (up to 3-second timeout). Uses physics-based spring-damper movement for human-like aim.
+
+:::warning Blocking Call (Static Mode)
+Static `look_at` is a **blocking call**. **Do not call it in a tight loop.** Each invocation resets camera velocity, so calling it repeatedly prevents the camera from ever building speed.
 :::
 
-**Correct pattern** — call once, then act:
 ```lua
--- Look at the target (blocks until settled)
+-- Smooth aim at coordinates (blocks until settled)
 hexis.player.look_at({x = 100, y = 65, z = 200})
--- Now act
 hexis.player.use_item()
+
+-- Named targets
+hexis.player.look_at("nearest_entity")
+hexis.player.look_at("nearest_player")
+hexis.player.look_at("marked_position")
+
+-- Speed control
+hexis.player.look_at({x = 100, y = 65, z = 200, speed = 1.0})  -- Slow
+hexis.player.look_at({x = 100, y = 65, z = 200, instant = true})  -- Rate-limited snap
 ```
 
-**Wrong pattern** — do NOT do this:
+#### Entity Tracking Mode (entity tables)
+
+When passed an entity table (from `get_nearby_entities()`), enters **persistent tracking mode** — the camera follows the entity per-frame via a render callback. Blocks briefly until initially aimed (~3°), then returns while the camera **continues tracking**.
+
 ```lua
--- BAD: Calling look_at in a loop kills camera velocity each time
-while true do
-    hexis.player.look_at({x = target.x, y = target.y, z = target.z})
+-- Get entity table with id field
+local mobs = hexis.world.get_nearby_entities(10, {type = "tadpole"})
+if #mobs > 0 then
+    -- Camera tracks the entity per-frame (smooth, no stuttering)
+    hexis.player.look_at(mobs[1])
+
+    -- Act while camera is still tracking
     hexis.player.use_item()
-    hexis.wait(0.05)
+    hexis.wait(0.3)
+    hexis.player.use_item()  -- Camera still following entity
 end
 ```
 
-```lua
--- Smooth aim (default, recommended)
-hexis.player.look_at({x = 100, y = 65, z = 200})
+**Entity tracking behavior:**
+- Camera keeps following the entity **after `look_at` returns**
+- Tracking stops automatically when: entity dies/despawns, script ends, or a new `look_at` is called
+- Calling `look_at(new_entity)` seamlessly switches to the new entity
+- Calling `look_at({x, y, z})` stops entity tracking and does a static aim
 
--- Slower aim
-hexis.player.look_at({x = 100, y = 65, z = 200, speed = 1.0})
-
--- Instant aim (rate-limited for safety, not truly instant)
-hexis.player.look_at({x = 100, y = 65, z = 200, instant = true})
-```
+:::tip Entity Tables
+Any table with an `id` field triggers entity tracking mode. Tables from `hexis.world.get_nearby_entities()` and `hexis.combat.find_target()` both work.
+:::
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `x, y, z` | number | Required | Target coordinates |
+| `x, y, z` | number | — | Target coordinates (static mode) |
 | `speed` | number | 3.0 | Aim speed (1.0 = gentle, 3.0 = fast, 5.0 = aggressive) |
-| `instant` | boolean | false | Skip smooth interpolation (still rate-limited) |
-| `target` | string | - | Named target: `"nearest_entity"`, `"nearest_player"`, `"marked_position"` |
+| `instant` | boolean | false | Skip smooth interpolation (still rate-limited, static only) |
+| `target` | string | — | Named target: `"nearest_entity"`, `"nearest_player"`, `"marked_position"` |
+| `id` | number | — | Entity ID (entity tracking mode — typically from entity table) |
 
 ### `hexis.player.left_click()`
 
