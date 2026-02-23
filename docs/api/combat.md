@@ -114,6 +114,70 @@ hexis.combat.hunt({
 
 ---
 
+## Engaged Combat
+
+### `hexis.combat.engage(options)`
+
+Fights a single entity provided by the script. **Blocking** — returns when the mob dies, escapes, times out, or the player dies. Unlike `hunt()` which scans for targets, `engage()` receives the target from Lua, letting scripts handle target selection (boss detection, ownership checks, etc.).
+
+**Returns:** string — `"killed"`, `"escaped"`, `"timeout"`, `"lost"`, or `"died"`
+
+```lua
+-- Find a boss, then engage it
+local boss = hexis.combat.find_boss({
+    boss_name = "Sven Packmaster",
+    entity_type = "wolf",
+    radius = 64
+})
+
+if boss then
+    local result = hexis.combat.engage({
+        entity = boss,
+        style = "engaged",
+        attack_range = 3.0,
+        cps = 7,
+        tracking_speed = 2.5,
+        timeout = 15
+    })
+
+    if result == "killed" then
+        hexis.log.info("Boss defeated!")
+    elseif result == "died" then
+        hexis.log.error("Player died!")
+    end
+end
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `entity` | table | required | Entity table with `id` (network ID) and/or `x, y, z` position |
+| `style` | string | `"engaged"` | `"engaged"` (kiting movement) or `"1tap"` (stationary) |
+| `attack_range` | number | `3.0` | Maximum attack distance |
+| `cps` | number | `7` | Clicks per second |
+| `tracking_speed` | number | `2.5` | Camera tracking speed multiplier |
+| `timeout` | number | `15` | Maximum combat duration in seconds |
+| `kite_min_range` | number | `1.5` | Minimum kiting distance (engaged style) |
+| `kite_optimal_range` | number | `2.0` | Optimal kiting distance (engaged style) |
+| `kite_max_range` | number | `2.5` | Maximum kiting distance (engaged style) |
+
+**Return Values:**
+
+| Value | Description |
+|-------|-------------|
+| `"killed"` | Target entity died or was removed |
+| `"escaped"` | Target moved out of reachable range |
+| `"timeout"` | Combat duration exceeded timeout |
+| `"lost"` | Target lost (despawned, teleported) |
+| `"died"` | Player died during combat |
+
+:::tip When to use engage() vs hunt()
+Use `engage()` when your script handles target selection — boss detection, ownership validation, zone filtering, etc. Use `hunt()` when you want Java to handle scanning and target selection automatically.
+:::
+
+---
+
 ## Target Detection
 
 ### `hexis.combat.get_targets(distance)`

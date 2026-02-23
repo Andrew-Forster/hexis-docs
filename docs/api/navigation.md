@@ -64,6 +64,52 @@ hexis.navigate.to({
 
 ---
 
+## Approach Navigation
+
+### `hexis.navigate.near(options)`
+
+Navigates to a valid standing position **near** a solid block. Uses GoalApproach which finds positions with line-of-sight and exposed faces. Ideal for approaching TNT blocks, chests, or other interactable solid blocks where you need to stand nearby rather than on top.
+
+**Blocking:** No (use `is_navigating()` to poll)
+
+**Returns:** `true` if navigation started, `false` if target has no exposed faces or path failed
+
+```lua
+-- Approach a TNT block
+local started = hexis.navigate.near({
+    x = -464, y = 119, z = -81,
+    range = 4.0
+})
+
+if started then
+    while hexis.navigate.is_navigating() do
+        hexis.wait(0.1)
+    end
+    hexis.log.info("Arrived near block!")
+end
+
+-- With custom min range (stay between 2 and 5 blocks away)
+hexis.navigate.near({
+    x = chest.x, y = chest.y, z = chest.z,
+    range = 5.0,
+    min_range = 2.0
+})
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `x, y, z` | number | required | Target solid block coordinates |
+| `range` | number | `4.0` | Maximum approach distance |
+| `min_range` | number | `1.0` | Minimum approach distance |
+
+:::tip navigate.near() vs navigate.to() with distance
+Use `navigate.near()` for solid blocks (TNT, chests, interactables) — it validates exposed faces and line-of-sight. Use `navigate.to()` with `distance` for navigating near air positions where the player could stand.
+:::
+
+---
+
 ## Etherwarp
 
 ### `hexis.navigate.etherwarp(target)`
