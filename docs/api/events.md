@@ -18,7 +18,7 @@ Register callbacks for game events.
 
 Registers an event listener.
 
-**Types:** `"sound"`, `"chat"`, `"tick"`
+**Types:** `"sound"`, `"chat"`, `"tick"`, `"block_change"`, `"entity_swing"`, `"entity_move"`
 
 ```lua
 -- Sound event (callback receives a table with sound data)
@@ -113,6 +113,70 @@ Sound event callbacks receive a table with the following fields:
 hexis.events.on("sound", "entity.fishing_bobber.splash", function(event)
     hexis.log.info("Splash at: " .. event.x .. ", " .. event.y .. ", " .. event.z)
     hexis.log.info("Volume: " .. event.volume .. " Pitch: " .. event.pitch)
+end)
+```
+
+---
+
+## Entity Events
+
+### entity_swing Event
+
+Fires when a nearby player swings their arm (attack/mining animation). Only fires for player entities, not mobs or items.
+
+**Pattern:** Player name filter (empty string matches all players)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `entity_id` | number | Entity network ID |
+| `entity_name` | string | Player username |
+| `x` | number | X coordinate of player |
+| `y` | number | Y coordinate of player |
+| `z` | number | Z coordinate of player |
+
+```lua
+-- Track all nearby player swings
+hexis.events.on("entity_swing", "", function(event)
+    hexis.log.info(event.entity_name .. " swung at " .. event.x .. ", " .. event.y .. ", " .. event.z)
+end)
+
+-- Filter by specific player name
+hexis.events.on("entity_swing", "SomePlayer", function(event)
+    hexis.log.info("Target player swung!")
+end)
+```
+
+### entity_move Event
+
+Fires when a nearby player moves more than 0.1 blocks. Includes previous position and distance moved. Only fires for player entities.
+
+**Pattern:** Player name filter (empty string matches all players)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `entity_id` | number | Entity network ID |
+| `entity_name` | string | Player username |
+| `x` | number | Current X coordinate |
+| `y` | number | Current Y coordinate |
+| `z` | number | Current Z coordinate |
+| `prev_x` | number | Previous X coordinate |
+| `prev_y` | number | Previous Y coordinate |
+| `prev_z` | number | Previous Z coordinate |
+| `delta` | number | Distance moved in blocks |
+
+```lua
+-- Detect large movements (teleports, etherwarp)
+hexis.events.on("entity_move", "", function(event)
+    if event.delta > 10 then
+        hexis.log.info(event.entity_name .. " teleported " .. string.format("%.1f", event.delta) .. " blocks")
+    end
+end)
+
+-- Detect short teleports (AOTE/AOTV usage, 3-10 blocks)
+hexis.events.on("entity_move", "", function(event)
+    if event.delta >= 3 and event.delta <= 10 then
+        hexis.log.info(event.entity_name .. " used AOTE (" .. string.format("%.1f", event.delta) .. " blocks)")
+    end
 end)
 ```
 
