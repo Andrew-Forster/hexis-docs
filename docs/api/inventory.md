@@ -101,7 +101,7 @@ Opens the player inventory screen.
 
 ```lua
 hexis.inventory.open()
-hexis.sleep(300)
+hexis.wait(0.3)
 ```
 
 ### `hexis.inventory.close()`
@@ -124,12 +124,12 @@ else
     -- Need to get from inventory
     hexis.gui.safe_mode()
     hexis.inventory.open()
-    hexis.sleep(300)
+    hexis.wait(0.3)
 
     local slot = hexis.gui.find({name = "Scythe"})
     if slot then
         hexis.gui.click(slot)
-        hexis.sleep(100)
+        hexis.wait(0.1)
         hexis.gui.switch_hotbar(0)
         hexis.gui.click(slot)
     end

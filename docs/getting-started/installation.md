@@ -12,7 +12,7 @@ This guide will walk you through installing Hexis, from setting up the Fabric mo
 
 ## Requirements
 
-- **Minecraft Java Edition** (1.21.8)
+- **Minecraft Java Edition** (1.21.11)
 - **Java 21** or newer
 - **A Hexis License** - Purchase at [usehexis.com](https://usehexis.com)
 
@@ -26,7 +26,7 @@ Hexis is a Fabric mod. You'll need to install the Fabric mod loader first.
 
 1. Download the Fabric Installer from [fabricmc.net/use/installer](https://fabricmc.net/use/installer/)
 2. Run the installer (double-click the JAR file)
-3. Select **Client** and choose Minecraft version **1.21.8**
+3. Select **Client** and choose Minecraft version **1.21.11**
 4. Click **Install**
 5. The installer will create a new profile in your Minecraft launcher
 
@@ -35,7 +35,7 @@ Hexis is a Fabric mod. You'll need to install the Fabric mod loader first.
 If you use a third-party launcher like Prism Launcher:
 
 1. Create a new instance
-2. Select Minecraft **1.21.8**
+2. Select Minecraft **1.21.11**
 3. In the mod loader section, select **Fabric** and install
 4. The launcher will handle the rest
 
@@ -46,7 +46,7 @@ If you use a third-party launcher like Prism Launcher:
 Most Fabric mods require the Fabric API library.
 
 1. Go to [Modrinth](https://modrinth.com/mod/fabric-api) or [CurseForge](https://www.curseforge.com/minecraft/mc-mods/fabric-api)
-2. Download **Fabric API** for Minecraft **1.21.8**
+2. Download **Fabric API** for Minecraft **1.21.11**
 3. Place the JAR file in your `mods` folder:
    - **Windows:** `%appdata%\.minecraft\mods`
    - **macOS:** `~/Library/Application Support/minecraft/mods`
@@ -61,7 +61,7 @@ Most Fabric mods require the Fabric API library.
 3. Your mods folder should now contain:
    ```
    mods/
-   ├── fabric-api-x.x.x+1.21.8.jar
+   ├── fabric-api-x.x.x+1.21.11.jar
    └── hexis-x.x.x.jar
    ```
 
@@ -153,7 +153,7 @@ Make sure you have Fabric API installed in your mods folder.
 
 ### Game crashes on startup
 - Make sure you're using Java 21 or newer
-- Verify Minecraft version is 1.21.8
+- Verify Minecraft version is 1.21.11
 - Remove other mods to check for conflicts
 
 ---

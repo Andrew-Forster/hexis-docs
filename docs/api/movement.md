@@ -94,6 +94,28 @@ hexis.movement.set_state({
 
 Trigger a jump. Automatically held for multiple ticks for reliability.
 
+### `hexis.movement.set_jumping(enabled)`
+
+Hold or release the jump key continuously. Unlike `jump()` which triggers a single jump, this holds the key indefinitely.
+
+```lua
+-- Fly up in creative mode
+hexis.movement.set_jumping(true)
+hexis.wait(3.0)  -- Ascend for 3 seconds
+hexis.movement.set_jumping(false)
+```
+
+### `hexis.movement.set_sneaking(enabled)`
+
+Hold or release the sneak key continuously. Useful for descending while flying or crouching at edges.
+
+```lua
+-- Descend while flying
+hexis.movement.set_sneaking(true)
+hexis.wait(2.0)
+hexis.movement.set_sneaking(false)
+```
+
 ### `hexis.movement.stop()`
 
 Stop all movement immediately.
@@ -106,7 +128,7 @@ Apply movement for this frame. **Call this every tick in your loop!**
 while hexis.running() do
     hexis.movement.set_forward(true)
     hexis.movement.tick()  -- Apply movement
-    hexis.sleep(50)
+    hexis.wait(0.05)
 end
 ```
 
@@ -140,7 +162,7 @@ while hexis.running() and mining_tree do
 
     hexis.mining.aim_tick()
     hexis.movement.tick()
-    hexis.sleep(50)
+    hexis.wait(0.05)
 end
 
 hexis.movement.release_control()

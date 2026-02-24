@@ -140,7 +140,7 @@ while hexis.running() do
         hexis.hud.set_var("rate", hexis.format.number(rate))
     end
 
-    hexis.sleep(1000)
+    hexis.wait(1.0)
 end
 
 hexis.hud.stop_timer()

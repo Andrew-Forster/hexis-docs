@@ -87,6 +87,6 @@ end
 
 if not block then
     hexis.log.warn("No blocks available, waiting...")
-    hexis.sleep(5000)
+    hexis.wait(5.0)
 end
 ```

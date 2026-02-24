@@ -17,19 +17,24 @@ Returns `true` if script should continue running. Use in main loop.
 ```lua
 while hexis.running() do
     -- Script logic
-    hexis.sleep(100)
+    hexis.wait(0.1)
 end
 ```
 
 ---
 
-## `hexis.sleep(ms)`
+## `hexis.wait(seconds)`
 
-Pauses script execution for specified milliseconds.
+Pauses script execution for the specified duration in **seconds**.
+
+:::warning Seconds, Not Milliseconds
+All timing in Hexis uses **seconds**. `hexis.wait(500)` waits 500 seconds (8+ minutes), not 500ms!
+:::
 
 ```lua
-hexis.sleep(1000)  -- Wait 1 second
-hexis.sleep(500)   -- Wait 500ms
+hexis.wait(0.5)   -- Wait 500ms
+hexis.wait(2)     -- Wait 2 seconds
+hexis.wait(0.05)  -- Wait 50ms (1 tick)
 ```
 
 ---
@@ -43,17 +48,6 @@ for i = 1, 1000 do
     -- Processing
     if i % 100 == 0 then hexis.yield() end
 end
-```
-
----
-
-## `hexis.wait(seconds)`
-
-Alternative to `sleep()` using seconds instead of milliseconds.
-
-```lua
-hexis.wait(0.5)  -- Wait 500ms
-hexis.wait(2)    -- Wait 2 seconds
 ```
 
 ---

@@ -15,7 +15,7 @@ Common patterns for Hexis scripting.
 ```lua
 while hexis.running() do
     -- logic
-    hexis.sleep(100)
+    hexis.wait(0.1)
 end
 ```
 
@@ -54,7 +54,7 @@ hexis.navigate.to({x = 100, y = 64, z = 200})
 ```lua
 hexis.gui.safe_mode()
 hexis.gui.open()
-hexis.sleep(300)
+hexis.wait(0.3)
 hexis.gui.click_item({name = "Confirm"})
 hexis.gui.close()
 ```

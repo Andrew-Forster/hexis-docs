@@ -119,7 +119,7 @@ hexis.conditions.always()        -- Always true
 -- Random break (50% chance)
 if hexis.conditions.random(0.5) then
     hexis.log.info("Taking a break...")
-    hexis.sleep(5000)
+    hexis.wait(5.0)
 end
 
 -- 10% chance
@@ -145,7 +145,7 @@ while hexis.running() do
         -- Continue farming
     else
         hexis.log.warn("Safety check failed, pausing...")
-        hexis.sleep(5000)
+        hexis.wait(5.0)
     end
 end
 ```

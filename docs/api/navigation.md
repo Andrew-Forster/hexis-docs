@@ -152,7 +152,7 @@ Returns `true` if navigation is complete.
 ```lua
 hexis.navigate.to({x = 100, y = 64, z = 200})
 while not hexis.navigate.arrived() do
-    hexis.sleep(100)
+    hexis.wait(0.1)
 end
 hexis.log.info("Arrived!")
 ```

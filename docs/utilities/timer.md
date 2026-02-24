@@ -84,7 +84,7 @@ hexis.timer.start()
 while hexis.running() do
     -- Update HUD with elapsed time
     hexis.hud.set_var("time", hexis.timer.formatted())
-    hexis.sleep(1000)
+    hexis.wait(1.0)
 end
 
 hexis.timer.stop()

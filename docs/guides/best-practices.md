@@ -17,10 +17,10 @@ To appear human and avoid detection:
 
 ```lua
 -- Bad: Fixed timing
-hexis.sleep(100)
+hexis.wait(0.1)
 
 -- Good: Variable timing
-hexis.sleep(math.random(80, 150))
+hexis.wait(math.random(80, 150) / 1000)
 ```
 
 ---
@@ -69,7 +69,7 @@ Pause/resume manually around warps:
 ```lua
 hexis.script.pause_staff_detection()
 hexis.chat.command("/hub")
-hexis.sleep(5000)  -- Wait for teleport
+hexis.wait(5.0)  -- Wait for teleport
 hexis.script.resume_staff_detection()
 ```
 

@@ -261,7 +261,7 @@ local kills = 0
 while hexis.running() do
     -- Update HUD with combat stats
     hexis.hud.set_var("kills", kills)
-    hexis.sleep(100)
+    hexis.wait(0.1)
 end
 
 -- Stop combat when script ends
@@ -293,7 +293,7 @@ function hexis.main()
 
             -- Wait until no more targets
             while #hexis.combat.get_targets(30) > 0 and hexis.running() do
-                hexis.sleep(500)
+                hexis.wait(0.5)
             end
 
             hexis.combat.stop()
@@ -303,7 +303,7 @@ function hexis.main()
             hexis.navigation.walk_to(next_spawn)
         end
 
-        hexis.sleep(100)
+        hexis.wait(0.1)
     end
 end
 ```
@@ -337,7 +337,7 @@ function hexis.main()
                         types = {"Enderman"},
                         max_distance = 20
                     })
-                    hexis.sleep(100)
+                    hexis.wait(0.1)
                 end
 
                 hexis.combat.stop()
@@ -345,10 +345,10 @@ function hexis.main()
         else
             -- Heal up
             hexis.log.warn("Low health, waiting to heal...")
-            hexis.sleep(5000)
+            hexis.wait(5.0)
         end
 
-        hexis.sleep(100)
+        hexis.wait(0.1)
     end
 end
 ```

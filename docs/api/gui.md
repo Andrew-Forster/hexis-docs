@@ -74,7 +74,7 @@ Opens player inventory.
 ```lua
 hexis.gui.safe_mode()
 hexis.gui.open()
-hexis.sleep(300)
+hexis.wait(0.3)
 ```
 
 ### `hexis.gui.close()`

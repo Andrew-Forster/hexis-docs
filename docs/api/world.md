@@ -566,6 +566,25 @@ Each entity table contains:
 | `aim_point` | table | `{x, y, z}` — eye position for living entities, bounding box center for others |
 | `box` | table | Bounding box dimensions |
 
+**Armor stand entities** include additional fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `is_small` | boolean | Whether the armor stand is small |
+| `is_marker` | boolean | Whether the armor stand is a marker |
+| `is_invisible` | boolean | Whether the armor stand is invisible |
+| `head_texture` | string | Base64-encoded skin texture from the skull on the armor stand's head slot (if present). Useful for identifying custom entities like Hypixel SkyBlock pests |
+
+```lua
+-- Find pest entities by head texture
+local entities = hexis.world.get_nearby_entities(50, "armor_stand")
+for _, e in ipairs(entities) do
+    if e.head_texture then
+        hexis.log.info("ArmorStand with custom head at " .. e.x .. "," .. e.y .. "," .. e.z)
+    end
+end
+```
+
 **Fishing bobber entities** include additional fields:
 
 | Field | Type | Description |

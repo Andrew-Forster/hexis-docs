@@ -131,7 +131,7 @@ Makes player jump if on ground.
 
 ```lua
 hexis.player.jump()
-hexis.sleep(500)
+hexis.wait(0.5)
 ```
 
 ### `hexis.player.equip(opts)`
@@ -228,6 +228,23 @@ hexis.player.look_at({x = 100, y = 65, z = 200, instant = true})
 hexis.player.left_click()
 ```
 
+### `hexis.player.attack()`
+
+Performs a single attack (left-click press + release). Simulates key input with a short hold time for reliable hit registration.
+
+```lua
+-- Break the block/entity you're looking at
+hexis.player.attack()
+```
+
+### `hexis.player.swing_hand()`
+
+Plays the hand swing animation without performing an attack. Visual only.
+
+```lua
+hexis.player.swing_hand()
+```
+
 ### `hexis.player.use_item()`
 
 Uses (right-clicks) the held item.
@@ -268,3 +285,84 @@ Toggles sprint on or off.
 hexis.player.sprint({enabled = true})   -- Start sprinting
 hexis.player.sprint({enabled = false})  -- Stop sprinting
 ```
+
+---
+
+## Camera Rotation
+
+### `hexis.player.set_rotation(yaw, pitch, opts)`
+
+Smoothly rotates the camera to the target angles. **Blocking** — returns when the camera settles within ~2° of the target (up to 3-second timeout).
+
+```lua
+-- Look north at a slight downward angle
+hexis.player.set_rotation(180, 30)
+
+-- Custom rotation speed
+hexis.player.set_rotation(0, 80, {speed = 5.0})
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `yaw` | number | Required | Horizontal angle (-180 to 180) |
+| `pitch` | number | Required | Vertical angle (-90 to 90) |
+| `speed` | number | 3.0 | Rotation speed (1.0 = slow, 5.0 = fast) |
+
+### `hexis.player.lock_rotation(yaw, pitch, opts)`
+
+Locks the camera to specific angles continuously. **Non-blocking** — returns immediately while the camera stays locked. The lock persists until `unlock_rotation()` is called or the script ends.
+
+```lua
+-- Lock camera looking down at crops for farming
+hexis.player.lock_rotation(0, 80, {speed = 3.0})
+
+-- ... farming loop runs while camera stays locked ...
+
+hexis.player.unlock_rotation()
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `yaw` | number | Required | Horizontal angle (-180 to 180) |
+| `pitch` | number | Required | Vertical angle (-90 to 90) |
+| `speed` | number | 3.0 | Rotation speed (1.0 = slow, 5.0 = fast) |
+
+### `hexis.player.unlock_rotation()`
+
+Releases the camera rotation lock, returning camera control to the player.
+
+```lua
+hexis.player.unlock_rotation()
+```
+
+### `hexis.player.is_rotation_locked()`
+
+Returns `true` if the camera is currently locked by `lock_rotation()`.
+
+```lua
+if hexis.player.is_rotation_locked() then
+    hexis.log.info("Camera is locked")
+end
+```
+
+---
+
+## Raycasting
+
+### `hexis.player.raycast(distance)`
+
+Casts a ray from the player's eye position in the look direction. Returns block hit info or `nil`.
+
+```lua
+local hit = hexis.player.raycast(4.5)
+if hit then
+    hexis.log.info("Looking at: " .. hit.block_name .. " at " .. hit.x .. "," .. hit.y .. "," .. hit.z)
+end
+```
+
+| Return Field | Type | Description |
+|-------------|------|-------------|
+| `block_name` | string | Block registry name (e.g., `"wheat"`) |
+| `x, y, z` | number | Block position |
+| `side` | string | Hit face: `"up"`, `"down"`, `"north"`, `"south"`, `"east"`, `"west"` |
+| `distance` | number | Distance from player eye to hit point |

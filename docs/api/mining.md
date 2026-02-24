@@ -292,7 +292,7 @@ while not hexis.world.is_block_air(100, 65, 200) do
     if hexis.player.is_on_ground then
         hexis.actions.jump()  -- Jump while mining!
     end
-    hexis.sleep(50)
+    hexis.wait(0.05)
 end
 
 hexis.mining.stop_mining_async()
@@ -578,7 +578,7 @@ function hexis.main()
 
         if #ores == 0 then
             hexis.log.info("No ores found, waiting...")
-            hexis.sleep(1000)
+            hexis.wait(1.0)
         else
             -- Use smart target selection
             local result = hexis.mining.select_target_smart({
@@ -606,7 +606,7 @@ function hexis.main()
                 -- Wait for block to break
                 while not hexis.world.is_block_air(target.x, target.y, target.z) do
                     hexis.mining.aim_tick()
-                    hexis.sleep(50)
+                    hexis.wait(0.05)
                 end
 
                 hexis.mining.stop_mining_async()
@@ -618,7 +618,7 @@ function hexis.main()
             end
         end
 
-        hexis.sleep(100)
+        hexis.wait(0.1)
     end
 end
 ```
