@@ -9,21 +9,57 @@ description: Container and inventory interactions
 Namespace: `hexis.gui`
 
 :::warning Movement Restriction
-GUI operations require the inventory/container to be OPEN. The player CANNOT move while interacting with GUIs. This is enforced automatically.
+GUI operations require the inventory/container to be OPEN. The player CANNOT move while interacting with GUIs. This is enforced automatically by the **GUI Interaction Guard**.
 :::
 
 ---
 
-## Safe Mode
+## Automatic Safety (GUI Interaction Guard)
+
+All GUI click operations are **automatically protected** against anti-cheat detection. You don't need to add manual delays — the system handles this for you.
+
+### What Happens Automatically
+
+| Protection | Behavior | When |
+|---|---|---|
+| **First-click delay** | 200-500ms randomized delay | Before the FIRST click after a container opens |
+| **Inter-click delay** | 100-150ms minimum gap | Between every consecutive click |
+| **Movement lock** | Stops pathfinder, camera, and movement keys | On first GUI click, released when container closes |
+
+:::tip No Migration Needed
+These protections are enforced at the Java API level. Existing scripts automatically benefit without any code changes.
+:::
+
+### Bypassing Inter-Click Delay
+
+For minigame scripts (Harp, Chronomatron) where the server **expects** fast consecutive clicks, use `unsafe = true` to bypass the inter-click delay:
+
+```lua
+-- Normal scripts — safe by default (100-150ms between clicks)
+hexis.gui.click(slot)
+
+-- Minigame scripts — bypass inter-click delay
+hexis.gui.click({ slot = slot_id, unsafe = true })
+```
+
+:::caution Only for Minigames
+Only use `unsafe = true` for Hypixel minigames that require fast clicking. NPC menus, bazaar, auction house, and quest UIs should always use the default safe behavior.
+:::
+
+---
+
+## Safe Mode (Legacy)
 
 ### `hexis.gui.safe_mode()`
 
-Stops ALL activity (combat, movement, camera) before GUI interaction.
+Manually stops ALL activity (combat, movement, camera) before GUI interaction.
 
-**Call this before any GUI operation to ensure clean state.**
+:::note Mostly Redundant
+The GUI Interaction Guard now handles movement locking automatically on the first click. You only need `safe_mode()` if you want to stop movement **before** opening a container (e.g., to prevent walking into an NPC).
+:::
 
 ```lua
-hexis.gui.safe_mode()
+hexis.gui.safe_mode()  -- Optional: stop movement before opening
 hexis.gui.open()
 ```
 
@@ -179,25 +215,42 @@ local slots = hexis.gui.get_slots(0, size - 1)
 
 ## Clicking
 
-### `hexis.gui.click(slot)`
+### `hexis.gui.click(slot)` / `hexis.gui.click(options)`
 
-Clicks a slot by index.
+Clicks a slot by index. Automatically enforces anti-cheat safety delays.
 
 ```lua
+-- Simple syntax
 hexis.gui.click(slot)
-hexis.sleep(200)  -- Wait for response
+
+-- Table syntax with options
+hexis.gui.click({ slot = 10, button = "right" })
+hexis.gui.click({ slot = 10, action = "shift" })
+hexis.gui.click({ slot = 10, hotbar = 0 })       -- Swap with hotbar
+
+-- Minigame bypass (skip inter-click delay)
+hexis.gui.click({ slot = slot_id, unsafe = true })
 ```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `slot` | number | Slot index to click |
+| `button` | string | `"left"` (default) or `"right"` |
+| `action` | string | `"shift"` for shift-click, `"right"` for right-click |
+| `hotbar` | number | Hotbar slot (0-8) to swap with |
+| `unsafe` | boolean | Skip inter-click delay (for minigames only) |
 
 ### `hexis.gui.click_item(options)`
 
-Find and click an item in one step.
+Find and click an item in one step. Same safety delays apply automatically.
 
 ```lua
 hexis.gui.click_item({
     name = "Confirm",
     required = true,      -- Fail if not found
     action = "shift",     -- "shift" or "right"
-    delay = 0.2           -- Delay after click
+    delay = 0.2,          -- Delay after click
+    unsafe = true         -- Optional: skip inter-click delay
 })
 ```
 
@@ -280,18 +333,42 @@ hexis.gui.switch_hotbar(0)  -- Switch to first slot
 
 ## Example Usage
 
+### Basic Container Navigation
+
 ```lua
--- Open bazaar and buy item
-hexis.gui.safe_mode()
+-- Open bazaar and buy item (safe_mode optional, guard handles delays)
 hexis.chat.command("/bz")
-hexis.gui.wait_for("Bazaar", 5000)
+hexis.gui.wait_for("Bazaar", 5)
 
 local slot = hexis.gui.find({name = "Buy Instantly"})
 if slot then
-    hexis.gui.click(slot)
-    hexis.sleep(300)
-    hexis.gui.click_item({name = "Confirm", required = true})
+    hexis.gui.click(slot)            -- First click: 200-500ms delay auto-applied
+    hexis.wait(0.3)                  -- Wait for server response
+    hexis.gui.click_item({           -- Second click: 100-150ms inter-click delay
+        name = "Confirm",
+        required = true
+    })
 end
 
 hexis.gui.close()
+```
+
+### Minigame Solver (Harp)
+
+```lua
+-- Watch for note changes and click reactively
+hexis.gui.watch_slots(ALL_SLOTS)
+
+while hexis.script.is_running() and hexis.gui.is_open() do
+    local changes = hexis.gui.poll_slot_changes()
+    for _, change in ipairs(changes) do
+        if change.type:find("quartz_block") then
+            hexis.wait(0.1)
+            hexis.gui.click({ slot = change.slot, unsafe = true })  -- Fast clicks OK
+        end
+    end
+    hexis.wait(0.02)
+end
+
+hexis.gui.stop_watching()
 ```

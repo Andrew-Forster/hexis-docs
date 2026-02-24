@@ -29,20 +29,31 @@ hexis.sleep(math.random(80, 150))
 
 **You cannot walk while inventory is open.**
 
-The script will automatically stop all movement when opening GUIs:
-- Pathfinder stops
-- Movement keys released
-- Camera control released
-
-Always call `hexis.gui.safe_mode()` before GUI operations:
+The **GUI Interaction Guard** automatically enforces safety when you click in a container:
+- First click is delayed 200-500ms after the container opens (prevents ChestStealer detection)
+- Consecutive clicks have a 100-150ms minimum gap
+- Pathfinder, camera tracking, and movement keys are automatically stopped on first click
+- Movement stays blocked until the container closes
 
 ```lua
-hexis.gui.safe_mode()  -- Stop all activity first
-hexis.inventory.open()
-hexis.sleep(300)
--- ... GUI operations ...
-hexis.inventory.close()
+-- Safe by default — no manual delays needed
+hexis.chat.command("/bz")
+hexis.gui.wait_for("Bazaar", 5)
+hexis.gui.click_item({ name = "Buy Instantly" })  -- Auto-delayed safely
+hexis.wait(0.3)
+hexis.gui.click_item({ name = "Confirm", required = true })
+hexis.gui.close()
 ```
+
+For minigame scripts that need fast clicking (Harp, Chronomatron), use `unsafe = true`:
+
+```lua
+hexis.gui.click({ slot = note_slot, unsafe = true })  -- Skip inter-click delay
+```
+
+:::note
+`hexis.gui.safe_mode()` is still available but mostly redundant — only needed if you want to stop movement **before** opening a container.
+:::
 
 ---
 
