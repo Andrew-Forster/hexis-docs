@@ -8,6 +8,12 @@ description: Player information, position, and actions
 
 Namespace: `hexis.player`
 
+:::tip Related APIs
+- For **walking to places**, see the [Navigation API](/api/navigation) — don't use player actions for pathfinding
+- For **finding entities**, see [`hexis.world.get_nearby_entities()`](/api/world) in the World API
+- For **combat**, see the [Combat API](/api/combat)
+:::
+
 ---
 
 ## Properties (Read-Only)

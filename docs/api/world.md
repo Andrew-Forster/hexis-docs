@@ -10,6 +10,13 @@ Namespace: `hexis.world`
 
 Query and interact with the game world.
 
+:::tip Related APIs
+- For **mining** blocks, see the [Mining API](/api/mining)
+- For **navigating** to blocks, see the [Navigation API](/api/navigation)
+- For **entity interaction**, see the [Player API](/api/player) (`interact_entity`, `look_at`)
+- For help choosing the right function, see [Choosing the Right Function](/guides/choosing-functions)
+:::
+
 ---
 
 ## Block Queries

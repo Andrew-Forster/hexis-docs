@@ -8,6 +8,12 @@ description: Common patterns and frequently used code snippets
 
 Common patterns for Hexis scripting.
 
+:::tip Want more detail?
+- [Choosing the Right Function](/guides/choosing-functions) — Decision tree for mining vs navigation vs interaction
+- [Common Patterns](/guides/common-patterns) — Full recipes with error handling and state machines
+- [Best Practices](/guides/best-practices) — Guidelines for safe, human-like scripts
+:::
+
 ---
 
 ## Main Loop Pattern

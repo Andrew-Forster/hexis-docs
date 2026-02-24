@@ -143,19 +143,50 @@ end
 
 ## Finding Items
 
-### `hexis.gui.find(options)`
+### `hexis.gui.click_item(options)` {#click-item}
 
-Finds an item in current GUI.
+**Recommended.** Finds an item in the current GUI and clicks it in one call. This is the preferred way to interact with menu items.
 
 ```lua
-local slot = hexis.gui.find({
-    name = "Diamond",           -- Item name (partial match)
-    lore = "Click to buy",     -- Lore text (partial match)
-    type = "hopper"            -- Item type
-})
+-- Find and click by name
+hexis.gui.click_item({name = "Sell Inventory"})
 
-if slot then
-    hexis.log.info("Found in slot " .. slot)
+-- Find and click by lore
+hexis.gui.click_item({lore = "Click to confirm"})
+
+-- Combine criteria (AND logic)
+hexis.gui.click_item({name = "Diamond", lore = "Click to buy"})
+```
+
+### `hexis.gui.click_item_by_lore(pattern)`
+
+Shorthand for finding and clicking an item by lore text.
+
+```lua
+hexis.gui.click_item_by_lore("Click to claim")
+```
+
+### `hexis.gui.find(options)`
+
+:::warning Not recommended for Lua scripts
+`gui.find` is a legacy binding from the YAML scripting system. It may not return values directly in Lua. Use [`click_item()`](#click-item) for combined find+click, or [`get_slots()`](#get-slots) for custom scanning logic.
+:::
+
+Finds an item in current GUI by name, lore, type, or color.
+
+```lua
+-- Instead of gui.find, prefer these alternatives:
+
+-- Option 1: Find and click in one step
+hexis.gui.click_item({name = "Diamond", lore = "Click to buy"})
+
+-- Option 2: Scan slots manually for custom logic
+local slots = hexis.gui.get_slots(0, 53)
+for _, slot in ipairs(slots) do
+    if not slot.empty and slot.name:find("Diamond") then
+        hexis.gui.click(slot.id)
+        break
+    end
 end
 ```
 
@@ -188,7 +219,7 @@ if info and not info.empty then
 end
 ```
 
-### `hexis.gui.get_slots(from, to)`
+### `hexis.gui.get_slots(from, to)` {#get-slots}
 
 Bulk-scans a range of slots and returns an array of slot info tables. Each entry has the same fields as `get_slot_info`.
 

@@ -10,10 +10,12 @@ Namespace: `hexis.mining`
 
 Block breaking with smooth aiming and smart target selection.
 
-:::info API Status
+:::info Not sure which function to use?
+See [Choosing the Right Function](/guides/choosing-functions) for a decision tree comparing mining, navigation, and interaction APIs. The Mining API is **only for breaking blocks** — for walking to locations, use the [Navigation API](/api/navigation).
+:::
 
-The Mining API is actively evolving. The `mine_block()` and `mine_nearest()` functions are the recommended high-level entry points. Lower-level primitives (`start_mining_async`, `aim_tick`, etc.) remain available for custom control flows.
-
+:::info Recommended Functions
+`mine_block()` and `mine_nearest()` are the recommended high-level entry points. Lower-level primitives (`start_mining_async`, `aim_tick`) are deprecated but remain available for custom control flows.
 :::
 
 ---
@@ -134,7 +136,11 @@ local result = hexis.mining.mine_block({
 
 ### `hexis.mining.mine_nearest(options)`
 
-Finds the nearest reachable block from a list of targets using **Multi-Target A*** and optionally navigates to it. Combines pathfinding and navigation into one call.
+Finds the nearest reachable **minable block** from a list of targets using **Multi-Target A*** and navigates to a vantage point where the player can mine it. Combines pathfinding, vantage point validation, and navigation into one call.
+
+:::danger Not for general navigation
+`mine_nearest` is **only for minable blocks**. Every target position must be an actual block that can be broken. If you need to walk to a location (NPC, warp pad, emissary), use [`navigate.near()`](/api/navigation#hexisnavigatenearoptions) or [`navigate.start_async()`](/api/navigation#hexisnavigatestart_asyncoptions) instead. See [Choosing the Right Function](/guides/choosing-functions) for a full comparison.
+:::
 
 **Blocking:** Configurable (blocking by default, async with `async = true`)
 
@@ -275,23 +281,73 @@ hexis.mining.start_loop({
 
 ---
 
+## Mining Sessions
+
+When mining multiple blocks in sequence, use sessions to keep the attack key held between blocks. This prevents camera stutter and makes transitions smoother.
+
+### `hexis.mining.start_session()`
+
+Begin a multi-block mining session. Subsequent `mine_block()` calls reuse the aim and interaction controllers.
+
+### `hexis.mining.end_session()`
+
+End the session. Releases attack key, camera control, and all mining state.
+
+```lua
+-- Smooth multi-block mining
+hexis.mining.start_session()
+
+for _, block in ipairs(tree_logs) do
+    if not hexis.script.is_running() then break end
+    hexis.mining.mine_block({
+        x = block.x, y = block.y, z = block.z,
+        timeout = 4.0
+    })
+end
+
+hexis.mining.end_session()
+```
+
+### `hexis.mining.set_session_jump(enabled)`
+
+Hold jump continuously during a mining session. Useful for underwater mining or jump-reach sequences.
+
+```lua
+hexis.mining.start_session()
+hexis.mining.set_session_jump(true)  -- Hold jump across all mine_block calls
+
+for _, block in ipairs(underwater_ores) do
+    hexis.mining.mine_block({
+        x = block.x, y = block.y, z = block.z,
+        allow_jump = true
+    })
+end
+
+hexis.mining.set_session_jump(false)
+hexis.mining.end_session()
+```
+
+### `hexis.mining.is_session_jump_active()`
+
+Returns `true` if session jump is currently enabled.
+
+---
+
 ## Non-Blocking Mining (Advanced)
 
-These primitives allow you to control mining while doing other things (like jumping).
+:::warning Deprecated
+These primitives are deprecated. Use `mine_block()` with sessions for most use cases. Only use these if you need frame-by-frame control over the mining loop.
+:::
 
 ### `hexis.mining.start_mining_async(options)`
 
-Starts mining a block. **NON-BLOCKING** - returns immediately.
+Starts mining a block. **NON-BLOCKING** - returns immediately. You must call `aim_tick()` every frame.
 
 ```lua
 hexis.mining.start_mining_async({x = 100, y = 65, z = 200, aim_speed = 2.5})
 
--- Your custom loop
 while not hexis.world.is_block_air(100, 65, 200) do
-    hexis.mining.aim_tick()  -- Update aim each frame
-    if hexis.player.is_on_ground then
-        hexis.actions.jump()  -- Jump while mining!
-    end
+    hexis.mining.aim_tick()
     hexis.wait(0.05)
 end
 
@@ -572,7 +628,7 @@ function hexis.main()
     while hexis.running() do
         -- Scan for ores
         local ores = hexis.world.scan_blocks({
-            names = {"diamond_ore", "deepslate_diamond_ore"},
+            match_patterns = {"diamond_ore", "deepslate_diamond_ore"},
             radius = 20
         })
 
@@ -588,33 +644,21 @@ function hexis.main()
             })
 
             if result.success then
-                local target = result.target
-
-                -- Navigate if needed
-                if not result.immediately_reachable and result.path then
-                    hexis.navigation.walk_path(result.path)
-                end
-
-                -- Mine the block
-                hexis.mining.start_mining_async({
-                    x = result.aim_point.x,
-                    y = result.aim_point.y,
-                    z = result.aim_point.z,
-                    aim_speed = 2.5
+                -- mine_block handles navigation + aiming + mining
+                local mine_result = hexis.mining.mine_block({
+                    x = result.target.x,
+                    y = result.target.y,
+                    z = result.target.z,
+                    timeout = 5.0
                 })
 
-                -- Wait for block to break
-                while not hexis.world.is_block_air(target.x, target.y, target.z) do
-                    hexis.mining.aim_tick()
-                    hexis.wait(0.05)
+                if mine_result.success then
+                    last_mined_pos = result.target
+                    blocks_mined = blocks_mined + 1
+                    hexis.hud.set_var("mined", blocks_mined)
+                else
+                    hexis.log.debug("Skipped: " .. mine_result.reason)
                 end
-
-                hexis.mining.stop_mining_async()
-
-                -- Track progress
-                last_mined_pos = target
-                blocks_mined = blocks_mined + 1
-                hexis.hud.set_var("mined", blocks_mined)
             end
         end
 
@@ -622,3 +666,7 @@ function hexis.main()
     end
 end
 ```
+
+:::tip
+For mining many blocks in a row, wrap the loop in `start_session()` / `end_session()` for smoother transitions. See [Mining Sessions](#mining-sessions) above.
+:::

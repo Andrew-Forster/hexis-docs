@@ -98,6 +98,8 @@ const sidebars: SidebarsConfig = {
       items: [
         'guides/best-practices',
         'guides/error-handling',
+        'guides/choosing-functions',
+        'guides/common-patterns',
       ],
     },
   ],

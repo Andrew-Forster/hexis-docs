@@ -8,6 +8,10 @@ description: A* pathfinding and movement
 
 Namespace: `hexis.navigate`
 
+:::info Not sure which function to use?
+See [Choosing the Right Function](/guides/choosing-functions) for a decision tree and side-by-side comparison of all navigation and mining functions.
+:::
+
 :::warning Target Coordinates
 Navigation targets must be **air blocks where the player can stand**, not solid blocks. The Y coordinate should be the position of the player's feet (the air block above the ground).
 
@@ -131,6 +135,186 @@ hexis.navigate.smart_etherwarp({
     distance = 48,        -- Max etherwarp distance
     timeout = 5000        -- Max wait for LOS
 })
+```
+
+---
+
+## Async Navigation
+
+### `hexis.navigate.start_async(options)`
+
+Starts A* pathfinding and returns immediately. The script controls the wait loop, which allows for interrupts (competition events, danger detection, etc.).
+
+**Blocking:** No (returns after path computation)
+
+**Returns:** `true` if pathfinding started, `false` if no path found
+
+```lua
+-- Basic async navigation
+local started = hexis.navigate.start_async({
+    x = 100.5, y = 65, z = 200.5,
+    distance = 2.0
+})
+
+if started then
+    while hexis.navigate.is_navigating() do
+        if not hexis.script.is_running() then break end
+        -- Can do other things here (check events, update HUD, etc.)
+        hexis.wait(0.05)
+    end
+end
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `x, y, z` | number | required | Target coordinates |
+| `distance` | number | 2.0 | Goal tolerance radius |
+| `max_nodes` | int | -1 | Max A* nodes (-1 = use config default) |
+| `max_time` | number | -1 | Max compute time in seconds |
+| `reach_target` | table | nil | `{x, y, z}` block for mining-aware navigation (enables LOS-based early arrival) |
+
+**With reach_target (mining-aware navigation):**
+
+When `reach_target` is set, the pathfinder uses `GoalApproach.forBlockMining` and enables early arrival when the player has line-of-sight to the target block. This is what `mine_nearest()` uses internally.
+
+```lua
+hexis.navigate.start_async({
+    x = vantage.x, y = vantage.y, z = vantage.z,
+    distance = 1.5,
+    reach_target = {x = ore.x, y = ore.y, z = ore.z}
+})
+```
+
+:::tip When to use start_async vs to vs near
+- **`start_async()`** — When you need to do things during navigation (check events, update HUD, handle interrupts). Most production scripts use this.
+- **`to()`** — Simple blocking navigation where you just want to wait until arrival.
+- **`near()`** — Approaching solid blocks that need line-of-sight validation (chests, TNT, NPC areas).
+
+See [Choosing the Right Function](/guides/choosing-functions#navigateto-vs-navigatenear-vs-navigatestart_async) for a detailed comparison.
+:::
+
+---
+
+## Water Navigation
+
+### `hexis.navigate.swim_to(options)`
+
+Underwater A* pathfinding using native Rust swim pathfinder.
+
+**Blocking:** No (starts swim following, returns immediately)
+
+**Returns:** `true` if path found and swim following started
+
+```lua
+local ok = hexis.navigate.swim_to({
+    x = 100, y = 30, z = 200,
+    max_nodes = 35000,
+    heuristic_weight = 1.2
+})
+
+if ok then
+    while hexis.navigate.is_swim_navigating() do
+        hexis.wait(0.05)
+    end
+end
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `x, y, z` | number | required | Target coordinates |
+| `max_nodes` | int | 35000 | Max A* nodes |
+| `heuristic_weight` | float | 1.2 | A* heuristic weight |
+
+### `hexis.navigate.is_swim_navigating()`
+
+Returns `true` if currently swim-navigating.
+
+### `hexis.navigate.is_in_water()`
+
+Returns `true` if player is in water.
+
+### `hexis.navigate.is_swimming()`
+
+Returns `true` if player is in swim mode.
+
+### `hexis.navigate.is_underwater(pos)`
+
+Returns `true` if position (or player, if no args) is underwater.
+
+### `hexis.navigate.get_water_surface_y(x, z)`
+
+Returns the Y level of the water surface at the given coordinates, or -1 if no water.
+
+---
+
+## Blacklist Management
+
+### `hexis.navigate.blacklist(pos)`
+
+Mark a position as unreachable. The pathfinder will avoid it.
+
+```lua
+hexis.navigate.blacklist({x = 100, y = 65, z = 200})
+```
+
+### `hexis.navigate.is_blacklisted(pos)`
+
+Returns `true` if the position is blacklisted.
+
+### `hexis.navigate.clear_blacklist(pos)`
+
+Clear a specific position from the blacklist, or clear the entire blacklist if no args.
+
+```lua
+hexis.navigate.clear_blacklist({x = 100, y = 65, z = 200})  -- Clear one
+hexis.navigate.clear_blacklist()  -- Clear all
+```
+
+### `hexis.navigate.get_blacklist_count()`
+
+Returns the number of blacklisted positions.
+
+---
+
+## Camera Lock
+
+Lock the camera on a target while the pathfinder uses WASD-only movement. Useful for mining while walking.
+
+### `hexis.navigate.set_camera_lock(target, hard_lock)`
+
+```lua
+-- Soft lock (blends with path direction)
+hexis.navigate.set_camera_lock({x = 100, y = 70, z = 200})
+
+-- Hard lock (strict aim at target)
+hexis.navigate.set_camera_lock({x = 100, y = 70, z = 200}, true)
+```
+
+### `hexis.navigate.clear_camera_lock()`
+
+Release camera lock and return to normal navigation.
+
+### `hexis.navigate.has_camera_lock()`
+
+Returns `true` if camera lock is active.
+
+### `hexis.navigate.find_ground_position(options)`
+
+Find a valid standing position near a target. Returns the position closest to the target (not the player).
+
+```lua
+local pos = hexis.navigate.find_ground_position({
+    x = tree.x, y = tree.y, z = tree.z,
+    search_radius = 5
+})
+
+if pos then
+    hexis.navigate.start_async({x = pos.x, y = pos.y, z = pos.z})
+end
 ```
 
 ---
