@@ -85,6 +85,20 @@ for i, name in ipairs(items) do
 end
 ```
 
+### `hexis.inventory.count_items(pattern)`
+
+Counts total items matching a pattern across the entire inventory (excluding hotbar).
+
+```lua
+local stone_count = hexis.inventory.count_items("stone")
+hexis.log.info("Stone: " .. stone_count)
+
+local ore_count = hexis.inventory.count_items("diamond_ore")
+if ore_count >= 64 then
+    hexis.log.info("Time to sell!")
+end
+```
+
 ### `hexis.inventory.is_full()`
 
 Returns `true` if the player's inventory is full.
@@ -126,12 +140,16 @@ else
     hexis.inventory.open()
     hexis.wait(0.3)
 
-    local slot = hexis.gui.find({name = "Scythe"})
-    if slot then
-        hexis.gui.click(slot)
-        hexis.wait(0.1)
-        hexis.gui.switch_hotbar(0)
-        hexis.gui.click(slot)
+    -- Scan slots to find the item
+    local slots = hexis.gui.get_slots(0, 53)
+    for _, slot in ipairs(slots) do
+        if not slot.empty and slot.name and slot.name:find("Scythe") then
+            hexis.gui.click(slot.id)
+            hexis.wait(0.1)
+            hexis.gui.switch_hotbar(0)
+            hexis.gui.click(slot.id)
+            break
+        end
     end
 
     hexis.inventory.close()

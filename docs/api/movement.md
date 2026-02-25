@@ -90,31 +90,22 @@ hexis.movement.set_state({
 
 ## Actions
 
-### `hexis.movement.jump()`
-
-Trigger a jump. Automatically held for multiple ticks for reliability.
-
-### `hexis.movement.set_jumping(enabled)`
-
-Hold or release the jump key continuously. Unlike `jump()` which triggers a single jump, this holds the key indefinitely.
+:::warning Deprecated Jump/Sneak Functions
+`movement.jump()`, `movement.set_jumping()`, and `movement.set_sneaking()` are **deprecated**. Use the unified Player API instead:
 
 ```lua
--- Fly up in creative mode
-hexis.movement.set_jumping(true)
-hexis.wait(3.0)  -- Ascend for 3 seconds
-hexis.movement.set_jumping(false)
+-- Old: hexis.movement.jump()
+hexis.player.jump()
+
+-- Old: hexis.movement.set_jumping(true/false)
+hexis.player.jump({hold = true})
+hexis.player.jump({hold = false})
+
+-- Old: hexis.movement.set_sneaking(true/false)
+hexis.player.sneak({hold = true})
+hexis.player.sneak({hold = false})
 ```
-
-### `hexis.movement.set_sneaking(enabled)`
-
-Hold or release the sneak key continuously. Useful for descending while flying or crouching at edges.
-
-```lua
--- Descend while flying
-hexis.movement.set_sneaking(true)
-hexis.wait(2.0)
-hexis.movement.set_sneaking(false)
-```
+:::
 
 ### `hexis.movement.stop()`
 

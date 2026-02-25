@@ -56,6 +56,32 @@ if hexis.mining.has_line_of_sight(100, 65, 200) then
 end
 ```
 
+### `hexis.mining.is_block_obstructed(x, y, z)`
+
+Checks if an entity is blocking access to a block position. Returns `false` if clear, or a table with entity info if obstructed.
+
+```lua
+local obstruction = hexis.mining.is_block_obstructed(100, 65, 200)
+if obstruction then
+    hexis.log.warn("Block obstructed by " .. obstruction.name
+        .. " at distance " .. obstruction.distance)
+    -- obstruction = {id, name, type, x, y, z, distance}
+else
+    hexis.mining.mine_block({x = 100, y = 65, z = 200})
+end
+```
+
+### `hexis.mining.get_distance(x, y, z)`
+
+Returns the Euclidean distance from the player to a block center.
+
+```lua
+local dist = hexis.mining.get_distance(100, 65, 200)
+if dist < 4.5 then
+    hexis.log.info("Block is in reach!")
+end
+```
+
 ### `hexis.mining.stop()`
 
 Stops current blocking mining operation.

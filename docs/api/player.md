@@ -131,13 +131,19 @@ end
 
 ## Action Methods
 
-### `hexis.player.jump()`
+### `hexis.player.jump(opts)`
 
-Makes player jump if on ground.
+Makes player jump. Supports one-shot and continuous hold modes.
 
 ```lua
+-- Single jump
 hexis.player.jump()
-hexis.wait(0.5)
+
+-- Hold jump continuously (for climbing, swimming up)
+hexis.player.jump({hold = true})
+
+-- Release jump
+hexis.player.jump({hold = false})
 ```
 
 ### `hexis.player.equip(opts)`
@@ -154,12 +160,28 @@ hexis.player.equip({pattern = "scythe|sword"})
 
 ### `hexis.player.sneak(opts)`
 
-Sneaks with configurable count and delay.
+Sneaks with configurable modes: toggle, hold, counted, or timed.
 
 ```lua
-hexis.player.sneak({duration = 1000})  -- Sneak for 1 second
-hexis.player.sneak({count = 3})        -- Sneak 3 times
+-- Hold sneak indefinitely
+hexis.player.sneak({hold = true})
+
+-- Release sneak
+hexis.player.sneak({hold = false})
+
+-- Timed hold (sneak for 1.5 seconds, then release)
+hexis.player.sneak({hold = true, duration = 1.5})
+
+-- Counted toggles (e.g., spam sneak 3 times with 0.3s gap)
+hexis.player.sneak({count = 3, delay = 0.3})
 ```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `hold` | boolean | nil | `true` to hold, `false` to release |
+| `duration` | number | nil | Hold duration in seconds (with `hold = true`) |
+| `count` | number | nil | Number of sneak toggles |
+| `delay` | number | `0.3` | Delay between toggles in seconds |
 
 ### `hexis.player.look_at(opts)`
 
@@ -224,24 +246,24 @@ Any table with an `id` field triggers entity tracking mode. Tables from `hexis.w
 | `target` | string | — | Named target: `"nearest_entity"`, `"nearest_player"`, `"marked_position"` |
 | `id` | number | — | Entity ID (entity tracking mode — typically from entity table) |
 
-### `hexis.player.left_click()`
+### `hexis.player.attack(opts)`
 
-Performs a single left-click (attack). Uses direct client input simulation for proper hit detection.
-
-```lua
--- Attack the entity you're looking at
-hexis.player.look_at({x = 100, y = 65, z = 200, instant = true})
-hexis.player.left_click()
-```
-
-### `hexis.player.attack()`
-
-Performs a single attack (left-click press + release). Simulates key input with a short hold time for reliable hit registration.
+Performs a left-click attack. Supports one-shot and continuous hold modes.
 
 ```lua
--- Break the block/entity you're looking at
+-- Single attack
 hexis.player.attack()
+
+-- Hold attack continuously
+hexis.player.attack({hold = true})
+
+-- Release held attack
+hexis.player.attack({hold = false})
 ```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `hold` | boolean | nil | `true` to hold, `false` to release. Omit for one-shot. |
 
 ### `hexis.player.swing_hand()`
 
@@ -251,12 +273,19 @@ Plays the hand swing animation without performing an attack. Visual only.
 hexis.player.swing_hand()
 ```
 
-### `hexis.player.use_item()`
+### `hexis.player.use_item(opts)`
 
-Uses (right-clicks) the held item.
+Uses (right-clicks) the held item. Supports one-shot and continuous hold modes.
 
 ```lua
+-- Single use
 hexis.player.use_item()
+
+-- Hold continuously (for bows, fishing rods, etc.)
+hexis.player.use_item({hold = true})
+
+-- Release
+hexis.player.use_item({hold = false})
 ```
 
 ### `hexis.player.interact_block(pos, opts)`
@@ -296,54 +325,24 @@ hexis.player.sprint({enabled = false})  -- Stop sprinting
 
 ## Camera Rotation
 
-### `hexis.player.set_rotation(yaw, pitch, opts)`
-
-Smoothly rotates the camera to the target angles. **Blocking** — returns when the camera settles within ~2° of the target (up to 3-second timeout).
-
-```lua
--- Look north at a slight downward angle
-hexis.player.set_rotation(180, 30)
-
--- Custom rotation speed
-hexis.player.set_rotation(0, 80, {speed = 5.0})
-```
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `yaw` | number | Required | Horizontal angle (-180 to 180) |
-| `pitch` | number | Required | Vertical angle (-90 to 90) |
-| `speed` | number | 3.0 | Rotation speed (1.0 = slow, 5.0 = fast) |
-
-### `hexis.player.lock_rotation(yaw, pitch, opts)`
-
-Locks the camera to specific angles continuously. **Non-blocking** — returns immediately while the camera stays locked. The lock persists until `unlock_rotation()` is called or the script ends.
+:::warning Deprecated
+`set_rotation()`, `lock_rotation()`, and `unlock_rotation()` are **deprecated**. Use `look_at()` with yaw/pitch parameters instead:
 
 ```lua
--- Lock camera looking down at crops for farming
-hexis.player.lock_rotation(0, 80, {speed = 3.0})
+-- Old: hexis.player.set_rotation(180, 30)
+hexis.player.look_at({yaw = 180, pitch = 30})
 
--- ... farming loop runs while camera stays locked ...
+-- Old: hexis.player.lock_rotation(0, 80)
+hexis.player.look_at({yaw = 0, pitch = 80, hold = true})
 
-hexis.player.unlock_rotation()
+-- Old: hexis.player.unlock_rotation()
+hexis.player.look_at(nil)
 ```
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `yaw` | number | Required | Horizontal angle (-180 to 180) |
-| `pitch` | number | Required | Vertical angle (-90 to 90) |
-| `speed` | number | 3.0 | Rotation speed (1.0 = slow, 5.0 = fast) |
-
-### `hexis.player.unlock_rotation()`
-
-Releases the camera rotation lock, returning camera control to the player.
-
-```lua
-hexis.player.unlock_rotation()
-```
+:::
 
 ### `hexis.player.is_rotation_locked()`
 
-Returns `true` if the camera is currently locked by `lock_rotation()`.
+Returns `true` if the camera is currently locked (via `look_at({hold = true})` or legacy `lock_rotation`).
 
 ```lua
 if hexis.player.is_rotation_locked() then

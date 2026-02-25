@@ -90,7 +90,7 @@ hexis.gui.close()
 Waits for a GUI with matching title to open.
 
 ```lua
-hexis.gui.wait_for("Bazaar", 5000)  -- Wait up to 5 seconds
+hexis.gui.wait_for("Bazaar", 5)  -- Wait up to 5 seconds
 ```
 
 ---
@@ -371,15 +371,12 @@ hexis.gui.switch_hotbar(0)  -- Switch to first slot
 hexis.chat.command("/bz")
 hexis.gui.wait_for("Bazaar", 5)
 
-local slot = hexis.gui.find({name = "Buy Instantly"})
-if slot then
-    hexis.gui.click(slot)            -- First click: 200-500ms delay auto-applied
-    hexis.wait(0.3)                  -- Wait for server response
-    hexis.gui.click_item({           -- Second click: 100-150ms inter-click delay
-        name = "Confirm",
-        required = true
-    })
-end
+hexis.gui.click_item({name = "Buy Instantly"})  -- First click: 200-500ms delay auto-applied
+hexis.wait(0.3)                                  -- Wait for server response
+hexis.gui.click_item({                           -- Second click: 100-150ms inter-click delay
+    name = "Confirm",
+    required = true
+})
 
 hexis.gui.close()
 ```

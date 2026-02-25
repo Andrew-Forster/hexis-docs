@@ -15,11 +15,11 @@ Boolean conditions for game state checks.
 ## Player Detection
 
 ```lua
-hexis.conditions.player_nearby(distance)        -- Any player nearby
-hexis.conditions.no_players_nearby(distance)    -- No players nearby
-hexis.conditions.player_within(distance, ms)    -- Player lingering
-hexis.conditions.player_visible(distance, ms)   -- Player in line of sight
-hexis.conditions.player_sneaking(distance)      -- Sneaking player nearby
+hexis.conditions.player_nearby(distance)              -- Any player nearby
+hexis.conditions.no_players_nearby(distance)          -- No players nearby
+hexis.conditions.player_within(distance, seconds)     -- Player lingering for duration
+hexis.conditions.player_visible(distance, seconds)    -- Player in line of sight for duration
+hexis.conditions.player_sneaking(distance)            -- Sneaking player nearby
 ```
 
 :::tip Alternative Properties
@@ -35,7 +35,7 @@ if hexis.conditions.player_nearby(30) then
 end
 
 -- Check if a player has been within 10 blocks for 5 seconds
-if hexis.conditions.player_within(10, 5000) then
+if hexis.conditions.player_within(10, 5) then
     hexis.log.warn("Player lingering close by!")
 end
 ```
@@ -45,8 +45,8 @@ end
 ## Entity Detection
 
 ```lua
-hexis.conditions.mob_within(distance, ms)       -- Mob nearby
-hexis.conditions.entity_within(distance, ms)    -- Any entity nearby
+hexis.conditions.mob_within(distance, seconds)       -- Mob nearby for duration
+hexis.conditions.entity_within(distance, seconds)    -- Any entity nearby for duration
 ```
 
 ### Examples

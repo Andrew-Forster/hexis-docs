@@ -1,19 +1,20 @@
 ---
 sidebar_position: 5
 title: Combat
-description: Automated combat and targeting
+description: Automated combat, targeting, and pursuit
 ---
 
 # Combat API
 
 Namespace: `hexis.combat`
 
-Automated combat with entity targeting and attack patterns.
+Automated combat with entity targeting, pursuit AI, and manual combat primitives.
 
-:::caution Beta Feature
-
-The Combat API is in **beta** and may have occasional issues with targeting or attack timing. Core functionality works, but edge cases are still being refined. Report any issues you encounter.
-
+:::info Choosing an Approach
+- **`start()`** — Background combat loop (auto-targeting, auto-attacking). Best for AFK grinding.
+- **`engage()`** — Fight a single entity your script provides. Best for bosses and slayers.
+- **Async combat** — Manual tick-based control. Best for custom combat logic.
+- **Pursuit primitives** — Chase an entity without attacking. Best for positioning before fighting.
 :::
 
 ---
@@ -22,23 +23,20 @@ The Combat API is in **beta** and may have occasional issues with targeting or a
 
 ### `hexis.combat.start(options)`
 
-Starts a combat loop that automatically targets and attacks entities.
+Starts a background combat loop that automatically targets and attacks entities.
 
-**Blocking:** No (runs in background, use `hexis.combat.stop()` to stop)
+**Blocking:** No (runs in background, use `stop()` to end)
 
 ```lua
 hexis.combat.start({
-    targets = {"Enderman", "Zealot"},  -- Entity types to target
-    style = "ranged",                   -- "ranged" or "melee"
-    weapon = "Juju Shortbow",          -- Weapon to equip
-    radius = 15,                        -- Search radius
-    aim_speed = 1.0,                    -- Aim speed multiplier
-    attack_cps = 12,                    -- Clicks per second
-    id = "my_combat"                    -- Optional: loop identifier
+    targets = {"Enderman", "Zealot"},
+    style = "ranged",
+    weapon = "Juju Shortbow",
+    radius = 15,
+    aim_speed = 1.0,
+    attack_cps = 12,
 })
 ```
-
-**Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -48,11 +46,10 @@ hexis.combat.start({
 | `radius` | number | `10` | Search radius for entities |
 | `aim_speed` | number | `1.0` | Camera aim speed multiplier |
 | `attack_cps` | number | `10` | Clicks per second |
-| `id` | string | nil | Optional identifier for pause/resume |
 
 ### `hexis.combat.stop()`
 
-Stops the combat loop.
+Stops the combat loop and releases camera control.
 
 ```lua
 hexis.combat.stop()
@@ -62,55 +59,27 @@ hexis.combat.stop()
 
 Returns `true` if combat loop is running.
 
-```lua
-if hexis.combat.is_active() then
-    hexis.log.info("Combat active!")
-end
-```
-
----
-
-## Single Attacks
-
-### `hexis.combat.attack(target, options)`
-
-Performs a single attack on target.
-
-```lua
-hexis.combat.attack("nearest_mob", {count = 1, cps = 12})
-```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `target` | string | Entity name or `"nearest_mob"` |
-| `options.count` | number | Number of attacks |
-| `options.cps` | number | Clicks per second |
-
 ---
 
 ## Hunt Mode
 
 ### `hexis.combat.hunt(options)`
 
-Hunt mode: pursue and attack entities. Automatically navigates to targets.
+Hunt mode: automatically scans for, pursues, and attacks entities. Java handles target selection.
 
 ```lua
 hexis.combat.hunt({
     type = "Enderman",
     hunt_radius = 30,
-    timeout = 10000
+    timeout = 10
 })
 ```
-
-**Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `type` | string | required | Entity type to hunt |
 | `hunt_radius` | number | `20` | Maximum hunt distance |
-| `timeout` | number | `5000` | Timeout in milliseconds |
+| `timeout` | number | `5` | Timeout in seconds |
 
 ---
 
@@ -123,7 +92,6 @@ Fights a single entity provided by the script. **Blocking** — returns when the
 **Returns:** string — `"killed"`, `"escaped"`, `"timeout"`, `"lost"`, or `"died"`
 
 ```lua
--- Find a boss, then engage it
 local boss = hexis.combat.find_boss({
     boss_name = "Sven Packmaster",
     entity_type = "wolf",
@@ -142,25 +110,21 @@ if boss then
 
     if result == "killed" then
         hexis.log.info("Boss defeated!")
-    elseif result == "died" then
-        hexis.log.error("Player died!")
     end
 end
 ```
 
-**Parameters:**
-
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `entity` | table | required | Entity table with `id` (network ID) and/or `x, y, z` position |
-| `style` | string | `"engaged"` | `"engaged"` (kiting movement) or `"1tap"` (stationary) |
+| `entity` | table | required | Entity table with `id` field |
+| `style` | string | `"engaged"` | `"engaged"` (kiting) or `"1tap"` (stationary) |
 | `attack_range` | number | `3.0` | Maximum attack distance |
 | `cps` | number | `7` | Clicks per second |
 | `tracking_speed` | number | `2.5` | Camera tracking speed multiplier |
 | `timeout` | number | `15` | Maximum combat duration in seconds |
-| `kite_min_range` | number | `1.5` | Minimum kiting distance (engaged style) |
-| `kite_optimal_range` | number | `2.0` | Optimal kiting distance (engaged style) |
-| `kite_max_range` | number | `2.5` | Maximum kiting distance (engaged style) |
+| `kite_min_range` | number | `1.5` | Minimum kiting distance |
+| `kite_optimal_range` | number | `2.0` | Optimal kiting distance |
+| `kite_max_range` | number | `2.5` | Maximum kiting distance |
 
 **Return Values:**
 
@@ -172,13 +136,59 @@ end
 | `"lost"` | Target lost (despawned, teleported) |
 | `"died"` | Player died during combat |
 
-:::tip When to use engage() vs hunt()
-Use `engage()` when your script handles target selection — boss detection, ownership validation, zone filtering, etc. Use `hunt()` when you want Java to handle scanning and target selection automatically.
+:::tip When to use engage() vs hunt() vs start()
+- **`engage()`** — Your script handles target selection (boss detection, ownership). Blocking, returns result.
+- **`hunt()`** — Java handles scanning and target selection. Blocking.
+- **`start()`** — Background combat loop. Non-blocking. Best for grinding while your script does other things.
 :::
 
 ---
 
-## Target Detection
+## Targeting
+
+### `hexis.combat.find_target(options)`
+
+Finds the best matching entity using configurable priority and filters.
+
+```lua
+local target = hexis.combat.find_target({
+    type = "Enderman",
+    radius = 20,
+    priority = "closest",
+    require_los = true
+})
+
+if target then
+    hexis.log.info("Found: " .. target.name .. " at " .. target.distance)
+end
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `type` | string | nil | Entity type to search for |
+| `radius` | number | `20` | Search radius |
+| `priority` | string | `"closest"` | `"closest"` or `"lowest_health"` |
+| `require_los` | boolean | `false` | Require line of sight |
+
+Returns an entity table with `id`, `name`, `x`, `y`, `z`, `distance`, etc., or `nil` if no match.
+
+### `hexis.combat.find_boss(options)`
+
+Finds boss entities matching specific criteria. Designed for Hypixel slayer bosses.
+
+```lua
+local boss = hexis.combat.find_boss({
+    boss_name = "Sven Packmaster",
+    entity_type = "wolf",
+    radius = 64
+})
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `boss_name` | string | nil | Boss display name pattern |
+| `entity_type` | string | nil | Entity type (e.g., `"wolf"`) |
+| `radius` | number | `64` | Search radius |
 
 ### `hexis.combat.get_targets(distance)`
 
@@ -191,164 +201,247 @@ for _, name in ipairs(targets) do
 end
 ```
 
-### `hexis.combat.get_nearest_target(options)`
+---
 
-Get the nearest entity matching criteria.
+## Validation Helpers
+
+### `hexis.combat.is_valid(entity)`
+
+Returns `true` if the entity still exists in the world.
+
+### `hexis.combat.is_alive(entity)`
+
+Returns `true` if the entity's health is above 0.
+
+### `hexis.combat.has_los(entity)`
+
+Returns `true` if the player has line of sight to the entity (lenient — single ray).
+
+### `hexis.combat.has_los_strict(entity)`
+
+Returns `true` if the player has clear line of sight (strict — 3+ rays from different angles).
+
+### `hexis.combat.distance_to(entity)`
+
+Returns the Euclidean distance to the entity.
+
+### `hexis.combat.blacklist(entity, duration_ms)`
+
+Temporarily ignore an entity for the given duration in milliseconds.
 
 ```lua
-local target = hexis.combat.get_nearest_target({
-    types = {"Enderman", "Zealot"},
-    max_distance = 30
-})
+hexis.combat.blacklist(entity, 5000)  -- Ignore for 5 seconds
+```
 
+### `hexis.combat.is_blacklisted(entity)`
+
+Returns `true` if the entity is currently blacklisted.
+
+---
+
+## Async Combat
+
+Manual tick-based combat where your script controls every frame. Use this when you need custom logic between attacks (ability usage, positioning, conditional behavior).
+
+### `hexis.combat.start_async(options)`
+
+Starts async combat mode. **Non-blocking** — you must call `tick()` every frame in your loop.
+
+```lua
+hexis.combat.start_async({
+    cps = 10,
+    tracking_speed = 2.5
+})
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `cps` | number | `10` | Clicks per second |
+| `tracking_speed` | number | `2.5` | Camera tracking speed |
+
+### `hexis.combat.set_target(entity)`
+
+Sets the current target for async combat. Pass an entity table from `find_target()` or `get_nearby_entities()`.
+
+```lua
+local target = hexis.combat.find_target({type = "Enderman", radius = 20})
 if target then
-    hexis.log.info("Nearest: " .. target.name .. " at " .. target.distance)
+    hexis.combat.set_target(target)
 end
 ```
 
----
+### `hexis.combat.tick()`
 
-## Combat Styles
-
-### Ranged Combat
-
-For bows, crossbows, and other ranged weapons:
+Updates aim and attack for async combat. **Call every frame.**
 
 ```lua
-hexis.combat.start({
-    targets = {"Enderman", "Zealot", "Voidling Extremist"},
-    style = "ranged",
-    weapon = "Juju Shortbow",
-    radius = 25,           -- Larger radius for ranged
-    attack_cps = 10,       -- Bow draw speed
-    aim_speed = 1.5        -- Slightly faster aim for moving targets
-})
-```
+hexis.combat.start_async({cps = 10})
 
-### Melee Combat
-
-For swords and melee weapons:
-
-```lua
-hexis.combat.start({
-    targets = {"Zombie", "Skeleton"},
-    style = "melee",
-    weapon = "Diamond Sword",
-    radius = 5,            -- Closer range for melee
-    attack_cps = 12,       -- Sword swing speed
-    aim_speed = 2.0        -- Fast aim for close quarters
-})
-```
-
----
-
-## Example Usage
-
-### Basic Combat Loop
-
-```lua
--- Start ranged combat
-hexis.combat.start({
-    targets = {"Enderman", "Zealot", "Voidling Extremist"},
-    style = "ranged",
-    weapon = "Juju Shortbow",
-    radius = 20,
-    attack_cps = 10
-})
-
--- Main loop
-local kills = 0
-while hexis.running() do
-    -- Update HUD with combat stats
-    hexis.hud.set_var("kills", kills)
-    hexis.wait(0.1)
-end
-
--- Stop combat when script ends
-hexis.combat.stop()
-```
-
-### Combat with Navigation
-
-```lua
-function hexis.main()
-    local spawn_points = {
-        {x = 100, y = 65, z = 200},
-        {x = 150, y = 65, z = 250},
-        {x = 200, y = 65, z = 200}
-    }
-
-    while hexis.running() do
-        -- Check for nearby targets
-        local targets = hexis.combat.get_targets(30)
-
-        if #targets > 0 then
-            -- Start combat if targets found
-            hexis.combat.start({
-                targets = {"Enderman"},
-                style = "ranged",
-                weapon = "Juju Shortbow",
-                radius = 25
-            })
-
-            -- Wait until no more targets
-            while #hexis.combat.get_targets(30) > 0 and hexis.running() do
-                hexis.wait(0.5)
-            end
-
-            hexis.combat.stop()
-        else
-            -- Navigate to next spawn point
-            local next_spawn = spawn_points[math.random(#spawn_points)]
-            hexis.navigation.walk_to(next_spawn)
-        end
-
-        hexis.wait(0.1)
+while hexis.script.is_running() do
+    local target = hexis.combat.find_target({type = "Enderman", radius = 20})
+    if target then
+        hexis.combat.set_target(target)
     end
+    hexis.combat.tick()
+    hexis.wait(0.05)
+end
+
+hexis.combat.stop_async()
+```
+
+### `hexis.combat.stop_async()`
+
+Stops async combat and releases camera control.
+
+### `hexis.combat.is_async_active()`
+
+Returns `true` if async combat is running.
+
+### `hexis.combat.has_target()`
+
+Returns `true` if a valid target is set.
+
+---
+
+## Pursuit
+
+Chase an entity without attacking. Useful for positioning before combat or following NPCs.
+
+### `hexis.combat.pursue(entity)`
+
+Starts non-blocking pursuit. The pathfinder navigates toward the entity and updates the path as it moves.
+
+```lua
+local boss = hexis.combat.find_boss({boss_name = "Sven Packmaster"})
+if boss then
+    hexis.combat.pursue(boss)
+    hexis.combat.set_camera_lock(boss)
+
+    while hexis.combat.is_pursuing() and hexis.script.is_running() do
+        hexis.combat.pursuit_tick()
+        if hexis.combat.pursuit_distance() < 3.0 then
+            break
+        end
+        hexis.wait(0.05)
+    end
+
+    hexis.combat.pursue_stop()
 end
 ```
 
-### Conditional Combat
+### `hexis.combat.pursue_stop()`
+
+Stops pursuit and releases navigation.
+
+### `hexis.combat.is_pursuing()`
+
+Returns `true` if currently pursuing.
+
+### `hexis.combat.pursuit_distance()`
+
+Returns the current distance to the pursuit target.
+
+### `hexis.combat.pursuit_tick()`
+
+Updates pursuit pathfinding. **Call every frame during pursuit.**
+
+---
+
+## Behavior & Camera
+
+### `hexis.combat.set_behavior(behavior)`
+
+Sets the combat movement behavior.
+
+| Behavior | Description |
+|----------|-------------|
+| `"normal"` | Standard combat movement |
+| `"backup"` | Walk backward while fighting |
+| `"strafe"` | Circle-strafe around the target |
+
+```lua
+hexis.combat.set_behavior("strafe")
+```
+
+### `hexis.combat.set_kite_range(min, optimal, max)`
+
+Configures kiting distances for `engage()` with engaged style.
+
+```lua
+hexis.combat.set_kite_range(1.5, 2.5, 3.5)
+```
+
+### `hexis.combat.set_camera_lock(entity)`
+
+Locks the camera on a specific entity per-frame.
+
+### `hexis.combat.clear_camera_lock()`
+
+Releases the camera lock.
+
+---
+
+## Attack Primitives
+
+Low-level attack functions for precise control over individual attacks.
+
+### `hexis.combat.in_range(entity, range)`
+
+Returns `true` if the entity is within the given attack range.
+
+```lua
+if hexis.combat.in_range(target, 3.0) then
+    hexis.combat.swing()
+end
+```
+
+### `hexis.combat.can_attack()`
+
+Returns `true` if the attack cooldown is ready.
+
+### `hexis.combat.swing()`
+
+Performs a single weapon swing (left-click attack).
+
+---
+
+## Example: Custom Slayer Loop
 
 ```lua
 function hexis.main()
-    while hexis.running() do
-        -- Only fight if health is good
-        local health = hexis.player.get_health()
+    while hexis.script.is_running() do
+        local boss = hexis.combat.find_boss({
+            boss_name = "Sven Packmaster",
+            entity_type = "wolf",
+            radius = 64
+        })
 
-        if health > 10 then
-            -- Check for targets
-            local target = hexis.combat.get_nearest_target({
-                types = {"Enderman"},
-                max_distance = 20
+        if boss then
+            -- Pursue until in range
+            hexis.combat.pursue(boss)
+            hexis.combat.set_camera_lock(boss)
+
+            while hexis.combat.is_pursuing() and hexis.script.is_running() do
+                hexis.combat.pursuit_tick()
+                if hexis.combat.pursuit_distance() < 3.0 then
+                    break
+                end
+                hexis.wait(0.05)
+            end
+            hexis.combat.pursue_stop()
+
+            -- Fight
+            local result = hexis.combat.engage({
+                entity = boss,
+                style = "engaged",
+                timeout = 30
             })
 
-            if target then
-                hexis.combat.start({
-                    targets = {"Enderman"},
-                    style = "ranged",
-                    weapon = "Juju Shortbow"
-                })
-
-                -- Fight until target dead or health low
-                while target and health > 5 and hexis.running() do
-                    health = hexis.player.get_health()
-                    target = hexis.combat.get_nearest_target({
-                        types = {"Enderman"},
-                        max_distance = 20
-                    })
-                    hexis.wait(0.1)
-                end
-
-                hexis.combat.stop()
-            end
-        else
-            -- Heal up
-            hexis.log.warn("Low health, waiting to heal...")
-            hexis.wait(5.0)
+            hexis.combat.clear_camera_lock()
+            hexis.log.info("Combat result: " .. result)
         end
 
-        hexis.wait(0.1)
+        hexis.wait(1.0)
     end
 end
 ```

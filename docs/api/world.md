@@ -412,6 +412,59 @@ Also available as `hexis.world.highlight.set_esp(enabled)`.
 
 ---
 
+## Block Pattern Listeners
+
+Watch for block changes matching a pattern in real-time. Useful for detecting crop growth, block breaks, or world events.
+
+### `hexis.world.on_block_pattern(pattern, callback)`
+
+Registers a listener that fires when any block matching the pattern changes. Returns a listener ID for later removal.
+
+The callback receives a table with `{x, y, z, old_name, new_name, is_air}`.
+
+```lua
+-- Watch for wheat becoming fully grown
+local listener_id = hexis.world.on_block_pattern("wheat", function(event)
+    hexis.log.info("Wheat changed at " .. event.x .. "," .. event.y .. "," .. event.z)
+    hexis.log.info("  " .. event.old_name .. " -> " .. event.new_name)
+end)
+
+-- Later: remove the listener
+hexis.world.remove_block_pattern(listener_id)
+```
+
+### `hexis.world.remove_block_pattern(id)`
+
+Removes a block pattern listener by its ID.
+
+---
+
+## Line-of-Sight Stand Position
+
+### `hexis.world.find_los_stand_pos(target, options)`
+
+Finds a position where the player can stand and have line of sight to a target. Useful for finding positions to interact with entities or blocks without pathfinding.
+
+```lua
+local pos = hexis.world.find_los_stand_pos(
+    {x = 100, y = 65, z = 200},
+    {max_range = 20}
+)
+
+if pos then
+    hexis.log.info("Stand at: " .. pos.x .. ", " .. pos.y .. ", " .. pos.z)
+    -- pos.aim = {x, y, z} — where to look
+    -- pos.distance = distance to target
+end
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `target` | table | required | `{x, y, z}` position to see |
+| `max_range` | number | 20.0 | Maximum search range |
+
+---
+
 ## Water Detection
 
 ### `hexis.world.find_water(radius)`
@@ -604,7 +657,7 @@ end
 local mobs = hexis.world.get_nearby_entities(10, {type = "zombie"})
 if #mobs > 0 then
     hexis.player.look_at(mobs[1].aim_point)
-    hexis.player.left_click()
+    hexis.player.attack()
 end
 ```
 
